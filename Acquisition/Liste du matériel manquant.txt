@@ -1,0 +1,6 @@
+caps
+	22uf
+	2.2uf
+supports a IC
+	8-pin x 1
+	14-pin x 3
