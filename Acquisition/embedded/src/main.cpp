@@ -7,18 +7,6 @@
 
 #include <Arduino.h>
 
-
-// asm instructions allow more precise delays than the built-in delay functions
-#define NOP5 "nop\n\t""nop\n\t""nop\n\t""nop\n\t""nop\n\t"
-#define NOP4 "nop\n\t""nop\n\t""nop\n\t""nop\n\t"
-#define NOP10 NOP5 NOP5
-#define NOP20 NOP10 NOP10
-#define NOP40 NOP20 NOP20
-
-#define DELAY_1US __asm__(NOP40 NOP4)
-#define DELAY_2US __asm__(NOP40 NOP40 NOP10 NOP4)
-#define DELAY_3US __asm__(NOP40 NOP40 NOP40 NOP20)
-
 const uint8_t kNumberOfPins = 7;
 const uint8_t readPin[kNumberOfPins] = {A0, A1, A2, A3, A4, A5, A6};
 const uint16_t kBufferSize = 700;
@@ -41,6 +29,7 @@ void setup() {
 void print_buffer(int index) {
     for(size_t i = 0; i < kNumberOfPins; i++)
     {
+        Serial.write(i+1);
         Serial.write(pin_data[i] + index, kPartitionSize);
     }
 }
@@ -53,7 +42,7 @@ void loop() {
     for(uint8_t i = 0; i < kNumberOfPins; i++)
     {
         current_data = analogRead(i);
-        pin_data[i][current_index] = current_data & 0xff;
+        pin_data[i][current_index] = current_data;
         pin_data[i][current_index + 1] = (current_data >> 8);
     }
     current_index += 2;
