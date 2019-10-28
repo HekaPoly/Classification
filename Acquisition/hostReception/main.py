@@ -5,19 +5,22 @@ import threading
 import os
 import math
 
-kNElectrodes = 7
+kNElectrodes = 9
 kSizePacket = 350
 kNSamplesPerPacket = int(kSizePacket / 2)
 kSamplePerSecond = 2000
-kAcquisitionTime = 30
-kNumPacketsToAcquire = math.ceil(kSamplePerSecond * kAcquisitionTime / kNSamplesPerPacket) * kNElectrodes
 
-movement_class = "freestyle"
-acquisition_number = "3"
+print("Temps d'acquisition?")
+kAcquisitionTime = input()
 
+print("Classe de mouvement?")
+movement_class = input()
+
+print("Numéro d'acquisition?")
+acquisition_number = input()
 
 def process_serial_buffer(q):
-    electrode = 0
+    electrode = q.get()
     processed_packets = 0
     emg_data = np.zeros((kNElectrodes, int(kNumPacketsToAcquire * kNSamplesPerPacket / kNElectrodes)), dtype=int)
     while True:
@@ -28,10 +31,17 @@ def process_serial_buffer(q):
             sample = low + (high << 8)
             packet[int(i / 2)] = sample
 
+
+
+
+
+
+
+
         start_index = int(processed_packets / kNElectrodes) * kNSamplesPerPacket
         emg_data[electrode, start_index: start_index + kNSamplesPerPacket] = packet
-        electrode = electrode + 1
-        electrode = electrode % kNElectrodes
+        electrode = electrode + 1 #On peut mettre q.get()?
+        electrode = electrode % kNElectrodes  
         processed_packets = processed_packets + 1
         if processed_packets >= kNumPacketsToAcquire:
             np.save(movement_class + "_" + str(kAcquisitionTime) + "s_" + str(kSamplePerSecond) + "Hz_" +
@@ -67,3 +77,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
