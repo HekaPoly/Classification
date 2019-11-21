@@ -10,8 +10,9 @@
 
 // asm instructions allow more precise delays than the built-in delay functions
 
-const uint8_t kNumberOfPins = 7;
-const uint8_t readPin[kNumberOfPins] = {A0, A1, A2, A3, A4, A5, A6};
+const uint8_t kNumberOfPins = 1;
+const uint8_t readPin[kNumberOfPins] = {A0};
+//const uint8_t readPin[kNumberOfPins] = {A0, A1, A2, A3, A4, A5, A6};
 const uint16_t kBufferSize = 700;
 const uint8_t kPartitions = 2;
 const uint16_t kPartitionSize = kBufferSize / kPartitions;
@@ -34,6 +35,7 @@ void print_buffer(int index) {
     {
         Serial.write(i+1);
         Serial.write(pin_data[i] + index, kPartitionSize);
+    
     }
 }
 
@@ -47,6 +49,8 @@ void loop() {
         current_data = analogRead(i);                                 // 10000110 10010011 >> 8 =  00000000 10000110
         pin_data[i][current_index] = current_data;              //  10010011
         pin_data[i][current_index + 1] = (current_data >> 8); // 10000110
+        //Serial.println(analogRead(i));
+
     }
     current_index += 2;
     if (current_index % kPartitionSize == 0) 
