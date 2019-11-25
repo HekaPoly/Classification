@@ -17,29 +17,30 @@ const uint16_t kBufferSize = 700;
 const uint8_t kPartitions = 2;
 const uint16_t kPartitionSize = kBufferSize / kPartitions;
 
-uint8_t pin_data[kNumberOfPins][kBufferSize];
+uint8_t pin_data[kNumberOfPins][kBufferSize]; //matrix of 8-bit unsigned numbers, from 0 to 255
+
 
 void setup() {
     Serial.begin(115200);
     for(size_t i = 0; i < kNumberOfPins; i++)
     {
-        pinMode(readPin[i], INPUT);
+        pinMode(readPin[i], INPUT); //Init each sensor
     }
     delay(5000);
-    pinMode(13, OUTPUT);
-    digitalWriteFast(13, HIGH);
+    pinMode(13, OUTPUT); //Init LED 13
+    digitalWriteFast(13, HIGH); //Turn on LED 13
 }
 
 void print_buffer(int index) {
     for(size_t i = 0; i < kNumberOfPins; i++)
     {
-        Serial.write(i+1);
-        Serial.write(pin_data[i] + index, kPartitionSize);
+        Serial.write(i+1); //Send the number of the sensor to the serial port as bytes
+        Serial.write(pin_data[i] + index, kPartitionSize); //Send the last 350 bytes of data from the sensor i 
     
     }
 }
 
-uint16_t current_data;
+uint16_t current_data; //16-bit unsigned numbers, from 0 to 65 536
 uint16_t current_index = 0;
 uint16_t print_index = 0;
 void loop() {
