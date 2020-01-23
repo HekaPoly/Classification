@@ -5,22 +5,19 @@ import threading
 import os
 import math
 
-kNElectrodes = 9
+kNElectrodes = 1
 kSizePacket = 350
 kNSamplesPerPacket = int(kSizePacket / 2)
 kSamplePerSecond = 2000
+kAcquisitionTime = 5
+kNumPacketsToAcquire = math.ceil(kSamplePerSecond * kAcquisitionTime / kNSamplesPerPacket) * kNElectrodes
 
-print("Temps d'acquisition?")
-kAcquisitionTime = input()
+movement_class = "freestyle"
+acquisition_number = "3"
 
-print("Classe de mouvement?")
-movement_class = input()
-
-print("Numéro d'acquisition?")
-acquisition_number = input()
 
 def process_serial_buffer(q):
-    electrode = q.get()
+    electrode = 0
     processed_packets = 0
     emg_data = np.zeros((kNElectrodes, int(kNumPacketsToAcquire * kNSamplesPerPacket / kNElectrodes)), dtype=int)
     while True:
@@ -31,20 +28,14 @@ def process_serial_buffer(q):
             sample = low + (high << 8)
             packet[int(i / 2)] = sample
 
-
-
-
-
-
-
-
         start_index = int(processed_packets / kNElectrodes) * kNSamplesPerPacket
         emg_data[electrode, start_index: start_index + kNSamplesPerPacket] = packet
-        electrode = electrode + 1 #On peut mettre q.get()?
+        electrode = electrode + 1
         electrode = electrode % kNElectrodes
         processed_packets = processed_packets + 1
         if processed_packets >= kNumPacketsToAcquire:
-            np.save(movement_class + "_" + str(kAcquisitionTime) + "s_" + str(kSamplePerSecond) + "Hz_" +
+            print(emg_data)
+            np.savetxt(movement_class + "_" + str(kAcquisitionTime) + "s_" + str(kSamplePerSecond) + "Hz_" +
                     acquisition_number, emg_data)
             os._exit(0)
 
@@ -53,10 +44,12 @@ def main():
     port_open = False
     while not port_open:
         try:
-            ser = serial.Serial("COM6", timeout=None, baudrate=115000, xonxoff=False, rtscts=False, dsrdtr=False)
+            ser = serial.Serial("COM6", timeout=None, baudrate=115200, xonxoff=False, rtscts=False, dsrdtr=False)
             ser.flushInput()
             ser.flushOutput()
             port_open = True
+            if port_open :
+                print("port is open")
         except:
             pass
 
@@ -70,6 +63,7 @@ def main():
                 data = ser.read(bytesToRead)
                 for sample in data:
                     q.put(sample)
+                    print(sample)
     except KeyboardInterrupt:
         print('interrupted!')
     os._exit(0)
@@ -77,6 +71,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

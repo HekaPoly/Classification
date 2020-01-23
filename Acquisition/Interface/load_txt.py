@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-data = np.load("freestyle_30s_2000Hz_3.npy")
+data = np.load("TEST_1s_2000Hz_2.npy")
 plt.subplot(241)
 plt.plot(data[0])
 plt.subplot(242)
