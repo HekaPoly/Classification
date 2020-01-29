@@ -13,7 +13,7 @@ outfile = TemporaryFile()
 kAcquisitionTime = 1
 movement_class = "TEST"
 acquisition_number = 1
-kNElectrodes = 2
+kNElectrodes = 9
 
 kSizePacket = 100
 kMesurePerSecond = 2000 # Hertz (For each electrodes)
@@ -60,9 +60,6 @@ def process_serial_buffer(q):
             np.save(name + ".npy", emg_data)
 
             StopSerial = True
-
-            for j in range(0, pin_number-1):
-                index[j] = 0
 
             break
             # os._exit(0)
@@ -179,14 +176,12 @@ class MyInterface:
         global acquisition_number
         global kNElectrodes
         global kNumOfMesures
-        global StopSerial
 
         kAcquisitionTime = int(self.e1.get())
         movement_class = self.e2.get()
         acquisition_number = int(self.e3.get())
         kNElectrodes = int(self.e4.get())
         kNumOfMesures = kMesurePerSecond * kNElectrodes * kAcquisitionTime
-        StopSerial = False
 
         print("Acquisition time = ", kAcquisitionTime)
         print("Movement class = ", movement_class)
@@ -195,9 +190,8 @@ class MyInterface:
         print("Number of mesures = ", kNumOfMesures)
 
 
-
     def acquisition(self):
-        print("Start acquisition")
+
         port_open = False
         while not port_open:
             try:
@@ -219,7 +213,6 @@ class MyInterface:
 
         global instant
         global StopSerial
-        global acquisition_number
 
         start_time = False
         start = 0
@@ -245,10 +238,6 @@ class MyInterface:
 
                 if StopSerial:
                     print("Acquisition completed")
-                    # Update acquisition number
-                    self.e3.delete(0, 'end')
-                    acquisition_number = acquisition_number + 1
-                    self.e3.insert(0,acquisition_number)
                     break
 
             print("counter = " + str(counter))
@@ -263,36 +252,20 @@ class MyInterface:
         global name
 
         data = np.load(name + ".npy")
-        position = 211
-
-        if kNElectrodes > 2 :
-            position = 221
-
-        if kNElectrodes > 4 :
-            position = 221
-
-        for k in range(0,kNElectrodes):
-            if k < 8:
-                plt.subplot(position)
-                plt.plot(data[k])
-                position = position + 1
-            else :
-                print("Not enough space on screen plot mesures from elecrode n°" + str(k+1))
-
-        # plt.subplot(241)
-        # plt.plot(data[0])
-        # plt.subplot(242)
-        # plt.plot(data[1])
-        # plt.subplot(243)
-        # plt.plot(data[2])
-        # plt.subplot(244)
-        # plt.plot(data[3])
-        # plt.subplot(245)
-        # plt.plot(data[4])
-        # plt.subplot(246)
-        # plt.plot(data[5])
-        # plt.subplot(247)
-        # plt.plot(data[6])
+        plt.subplot(241)
+        plt.plot(data[0])
+        plt.subplot(242)
+        plt.plot(data[1])
+        plt.subplot(243)
+        plt.plot(data[2])
+        plt.subplot(244)
+        plt.plot(data[3])
+        plt.subplot(245)
+        plt.plot(data[4])
+        plt.subplot(246)
+        plt.plot(data[5])
+        plt.subplot(247)
+        plt.plot(data[6])
         plt.show()
         print("not ready")
 
