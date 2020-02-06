@@ -13,7 +13,7 @@ outfile = TemporaryFile()
 kAcquisitionTime = 1
 movement_class = "TEST"
 acquisition_number = 1
-kNElectrodes = 2
+kNElectrodes = 3
 
 kSizePacket = 100
 kMesurePerSecond = 2000 # Hertz (For each electrodes)
@@ -99,13 +99,18 @@ class MyInterface:
         self.e4 = Entry(self.left_frame, font=("Courrier", 20), bg='white', fg='#6E6C6C')
         self.e4.grid(row=9)
 
+        self.start_button = Button(self.right_frame, text="Start", font=("Courrier", 25), bg='#F90A0A', fg='#6E6C6C',
+                           command=self.acquisition)
+        self.start_button.grid(row=1)
+        self.start_button.config (state = DISABLED)
+
         self.init_fields()
 
 
     def create_widgets(self):
         self.create_title()
         self.create_subtitle()
-        self.create_start_button()
+        # self.create_start_button()
         self.create_init_button()
         self.create_load_button()
         self.create_empty_label()
@@ -142,10 +147,11 @@ class MyInterface:
                                  fg='white')
         label_subtitle_4.grid(row=8)
 
-    def create_start_button(self):
-        start_button = Button(self.right_frame, text="Start", font=("Courrier", 25), bg='white', fg='#6E6C6C',
-                           command=self.acquisition)
-        start_button.grid(row=1)
+    # def create_start_button(self):
+    #     start_button = Button(self.right_frame, text="Start", font=("Courrier", 25), bg='#F90A0A', fg='#6E6C6C',
+    #                        command=self.acquisition)
+    #     start_button.grid(row=1)
+    #     start_button.config (state = DISABLED)
 
     def create_load_button(self):
         load_button = Button(self.right_frame, text="Load", font=("Courrier", 25), bg='white', fg='#6E6C6C',
@@ -193,11 +199,12 @@ class MyInterface:
         print("Acquisition number = ", acquisition_number)
         print("Number of electrodes = ", kNElectrodes)
         print("Number of mesures = ", kNumOfMesures)
-
+        self.start_button.config (state = NORMAL,bg='#16F90A')
 
 
     def acquisition(self):
         print("Start acquisition")
+        self.start_button.config (state = DISABLED,bg='#F90A0A')
         port_open = False
         while not port_open:
             try:
