@@ -6,33 +6,26 @@ import queue
 import threading
 import os
 import matplotlib.pyplot as plt
-from tempfile import TemporaryFile
+import pathlib
 
-outfile = TemporaryFile()
+# from tempfile import TemporaryFile
 
-kAcquisitionTime = 1
-movement_class = "TEST"
-acquisition_number = 1
-kNElectrodes = 3
+# outfile = TemporaryFile()
 
 kSizePacket = 100
 kMesurePerSecond = 2000 # Hertz (For each electrodes)
 
-name = "noName"
-
 instant = 0
 StopSerial = False
 
-def process_serial_buffer(q):
+def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq_time, n_mesures, file_path):
 
     global instant
-    global name
-    global kNumOfMesures
     global StopSerial
 
-    index= np.zeros(9)
+    index = np.zeros(9)
     pin_number = 0
-    emg_data = np.zeros((kNElectrodes,kMesurePerSecond * kAcquisitionTime))
+    emg_data = np.zeros((n_electrodes,kMesurePerSecond * acq_time))
     n = 0
 
     while True:
@@ -52,12 +45,12 @@ def process_serial_buffer(q):
             index[pin_number-1] = index[pin_number-1] + 1
             n = n + 1
 
-        if n==kNumOfMesures:
+        if n==n_mesures:
             print(emg_data)
             print("time is " + str(instant))
-            name = movement_class + "_" + str(kAcquisitionTime) + "s_" + str(kMesurePerSecond) + "Hz_" + str(acquisition_number)
-            np.savetxt(name + ".txt", emg_data)
-            np.save(name + ".npy", emg_data)
+
+            # np.savetxt(file_name + ".txt", emg_data)
+            np.save(file_path, emg_data)
 
             StopSerial = True
 
@@ -76,6 +69,16 @@ class MyInterface:
         self.window.minsize(480, 360)
         self.window.iconbitmap("logo.ico")
         self.window.config(background='#6E6C6C')
+
+        # Paramètres
+        self.name = "SubjectName"
+        self.acquisition_time = 0
+        self.movement_class = "MovementClass"
+        self.acquisition_number = 1
+        self.n_electrodes = 1
+        self.n_mesures = 0
+        self.file_name = ""
+        self.file_path = ""
 
         # initialisation des composants
         self.left_frame = Frame(self.window, bg='#6E6C6C')
@@ -98,6 +101,8 @@ class MyInterface:
         self.e3.grid(row=7)
         self.e4 = Entry(self.left_frame, font=("Courrier", 20), bg='white', fg='#6E6C6C')
         self.e4.grid(row=9)
+        self.e5 = Entry(self.left_frame, font=("Courrier", 20), bg='white', fg='#6E6C6C')
+        self.e5.grid(row=11)
 
         self.start_button = Button(self.right_frame, text="Start", font=("Courrier", 25), bg='#F90A0A', fg='#6E6C6C',
                            command=self.acquisition)
@@ -105,7 +110,6 @@ class MyInterface:
         self.start_button.config (state = DISABLED)
 
         self.init_fields()
-
 
     def create_widgets(self):
         self.create_title()
@@ -131,11 +135,11 @@ class MyInterface:
         label_title_3.grid(row=3)
 
     def create_subtitle(self):
-        label_subtitle_1 = Label(self.left_frame, text="Acquisition time :", font=("Courrier", 15), bg='#6E6C6C',
+        label_subtitle_1 = Label(self.left_frame, text="Acquisition time:", font=("Courrier", 15), bg='#6E6C6C',
                                  fg='white')
         label_subtitle_1.grid(row=2)
 
-        label_subtitle_2 = Label(self.left_frame, text="Mouvementclass :", font=("Courrier", 15), bg='#6E6C6C',
+        label_subtitle_2 = Label(self.left_frame, text="Movement Class:", font=("Courrier", 15), bg='#6E6C6C',
                                  fg='white')
         label_subtitle_2.grid(row=4)
 
@@ -143,9 +147,13 @@ class MyInterface:
                                  fg='white')
         label_subtitle_3.grid(row=6)
 
-        label_subtitle_4 = Label(self.left_frame, text="Number of electrodes :", font=("Courrier", 15), bg='#6E6C6C',
+        label_subtitle_4 = Label(self.left_frame, text="Number of electrodes:", font=("Courrier", 15), bg='#6E6C6C',
                                  fg='white')
         label_subtitle_4.grid(row=8)
+
+        label_subtitle_5 = Label(self.left_frame, text="Name:", font=("Courrier", 15), bg='#6E6C6C',
+                                 fg='white')
+        label_subtitle_5.grid(row=10)
 
     # def create_start_button(self):
     #     start_button = Button(self.right_frame, text="Start", font=("Courrier", 25), bg='#F90A0A', fg='#6E6C6C',
@@ -161,46 +169,53 @@ class MyInterface:
     def create_init_button(self):
         load_button = Button(self.left_frame, text="Init", font=("Courrier", 25), bg='white', fg='#6E6C6C',
                            command=self.initate_aquisition)
-        load_button.grid(row=11)
+        load_button.grid(row=13)
 
     def create_empty_label(self):
         label_empty_1 = Label(self.left_frame, bg='#6E6C6C')
         label_empty_1.grid(row=1)
         label_empty_2 = Label(self.left_frame, bg='#6E6C6C')
-        label_empty_2.grid(row=10)
+        label_empty_2.grid(row=12)
+
         label_empty_3 = Label(self.right_frame, bg='#6E6C6C')
         label_empty_3.grid(row=2)
 
-
-
     def init_fields(self):
-        self.e1.insert(0,kAcquisitionTime)
-        self.e2.insert(0,movement_class)
-        self.e3.insert(0,acquisition_number)
-        self.e4.insert(0,kNElectrodes)
+        self.e1.insert(0,self.acquisition_time)
+        self.e2.insert(0,self.movement_class)
+        self.e3.insert(0,self.acquisition_number)
+        self.e4.insert(0,self.n_electrodes)
+        self.e5.insert(0, self.name)
 
     def initate_aquisition(self):
-        global kAcquisitionTime
-        global movement_class
-        global acquisition_number
-        global kNElectrodes
-        global kNumOfMesures
         global StopSerial
 
-        kAcquisitionTime = int(self.e1.get())
-        movement_class = self.e2.get()
-        acquisition_number = int(self.e3.get())
-        kNElectrodes = int(self.e4.get())
-        kNumOfMesures = kMesurePerSecond * kNElectrodes * kAcquisitionTime
+        self.acquisition_time = int(self.e1.get())
+        self.movement_class = self.e2.get()
+        self.acquisition_number = int(self.e3.get())
+        self.nElectrodes = int(self.e4.get())
+        self.name = self.e5.get()
+
+        self.n_mesures = kMesurePerSecond * self.n_electrodes * self.acquisition_time
+        self.file_name = self.movement_class + "_" + str(self.acquisition_time) + "s_" + str(kMesurePerSecond) + "Hz_" + str(self.acquisition_number)
+        self.file_path = os.path.join("Data", self.name, self.file_name + ".npy")
+
+        # Make sure folder exist
+        list_subfolders = [f.name for f in os.scandir(pathlib.Path().absolute()) if f.is_dir()]
+        if self.name not in list_subfolders:
+            os.mkdir("Data\\"+self.name)
+
         StopSerial = False
 
-        print("Acquisition time = ", kAcquisitionTime)
-        print("Movement class = ", movement_class)
-        print("Acquisition number = ", acquisition_number)
-        print("Number of electrodes = ", kNElectrodes)
-        print("Number of mesures = ", kNumOfMesures)
-        self.start_button.config (state = NORMAL,bg='#16F90A')
+        print("Acquisition time: ", self.acquisition_time)
+        print("Movement class: ", self.movement_class)
+        print("Acquisition number: ", self.acquisition_number)
+        print("Number of electrodes: ", self.n_electrodes)
+        print("Number of mesures: ", self.n_mesures)
+        print("Name: ", self.name)
+        print("Path: ", self.file_path)
 
+        self.start_button.config (state = NORMAL,bg='#16F90A')
 
     def acquisition(self):
         print("Start acquisition")
@@ -218,7 +233,15 @@ class MyInterface:
                 pass
 
         q = queue.Queue()
-        consumer = threading.Thread(target=process_serial_buffer, args=(q,))
+        consumer = threading.Thread(target=process_serial_buffer, args=(q, 
+                                                                        self.name, 
+                                                                        self.movement_class, 
+                                                                        self.acquisition_number, 
+                                                                        self.n_electrodes,
+                                                                        self.acquisition_time,
+                                                                        self.n_mesures,
+                                                                        self.file_path))
+        
         consumer.start()
 
 
@@ -226,7 +249,6 @@ class MyInterface:
 
         global instant
         global StopSerial
-        global acquisition_number
 
         start_time = False
         start = 0
@@ -254,8 +276,8 @@ class MyInterface:
                     print("Acquisition completed")
                     # Update acquisition number
                     self.e3.delete(0, 'end')
-                    acquisition_number = acquisition_number + 1
-                    self.e3.insert(0,acquisition_number)
+                    self.acquisition_number = self.acquisition_number + 1
+                    self.e3.insert(0,self.acquisition_number)
                     break
 
             print("counter = " + str(counter))
@@ -263,22 +285,18 @@ class MyInterface:
         except KeyboardInterrupt:
             print('interrupted!')
 
-
     # Afficher les resultats
     def load(self):
-
-        global name
-
-        data = np.load(name + ".npy")
+        data = np.load(self.file_path)
         position = 211
 
-        if kNElectrodes > 2 :
+        if self.n_electrodes > 2 :
             position = 221
 
-        if kNElectrodes > 4 :
+        if self.n_electrodes > 4 :
             position = 221
 
-        for k in range(0,kNElectrodes):
+        for k in range(0,self.n_electrodes):
             if k < 8:
                 plt.subplot(position)
                 plt.plot(data[k])
