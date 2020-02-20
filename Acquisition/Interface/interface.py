@@ -40,6 +40,7 @@ def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq
             value = low + (high << 8)
             # print("value = " + str(value))
             i = int(index[pin_number-1])
+            
             # print("i = " + str(i))
             emg_data[pin_number-1][i] = value
             index[pin_number-1] = index[pin_number-1] + 1
@@ -72,10 +73,10 @@ class MyInterface:
 
         # Paramètres
         self.name = "SubjectName"
-        self.acquisition_time = 0
+        self.acquisition_time = 1
         self.movement_class = "MovementClass"
         self.acquisition_number = 1
-        self.n_electrodes = 1
+        self.n_electrodes = 2
         self.n_mesures = 0
         self.file_name = ""
         self.file_path = ""
@@ -201,7 +202,8 @@ class MyInterface:
         self.file_path = os.path.join("Data", self.name, self.file_name + ".npy")
 
         # Make sure folder exist
-        list_subfolders = [f.name for f in os.scandir(pathlib.Path().absolute()) if f.is_dir()]
+        name_path = os.path.join(pathlib.Path().absolute(), "Data")
+        list_subfolders = [f.name for f in os.scandir(name_path) if f.is_dir()]
         if self.name not in list_subfolders:
             os.mkdir("Data\\"+self.name)
 
@@ -223,14 +225,14 @@ class MyInterface:
         port_open = False
         while not port_open:
             try:
-                ser = serial.Serial("COM6", timeout=None, baudrate=115200, xonxoff=False, rtscts=False, dsrdtr=False)
+                ser = serial.Serial("COM10", timeout=None, baudrate=115200, xonxoff=False, rtscts=False, dsrdtr=False)
                 ser.flushInput()
                 ser.flushOutput()
                 port_open = True
-                if port_open :
-                    print("port is open")
+                print("port is open")
             except:
-                pass
+                print("Can't connect to port")
+                exit(1)
 
         q = queue.Queue()
         consumer = threading.Thread(target=process_serial_buffer, args=(q, 
