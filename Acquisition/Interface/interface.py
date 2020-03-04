@@ -18,12 +18,14 @@ kMesurePerSecond = 2000 # Hertz (For each electrodes)
 instant = 0
 StopSerial = False
 
+comPort = "COM24"
+
 def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq_time, n_mesures, file_path):
 
     global instant
     global StopSerial
 
-    index = np.zeros(9)
+    index = np.zeros(n_electrodes) #To keep track of the index of each electrod
     pin_number = 0
     emg_data = np.zeros((n_electrodes,kMesurePerSecond * acq_time))
     n = 0
@@ -41,6 +43,7 @@ def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq
         else :
             value = low + (high << 8)
             # print("value = " + str(value))
+
             i = int(index[pin_number-1])
             
             # print("i = " + str(i))
@@ -227,7 +230,7 @@ class MyInterface:
         port_open = False
         while not port_open:
             try:
-                ser = serial.Serial("COM10", timeout=None, baudrate=115200, xonxoff=False, rtscts=False, dsrdtr=False)
+                ser = serial.Serial(comPort, timeout=None, baudrate=115200, xonxoff=False, rtscts=False, dsrdtr=False)
                 ser.flushInput()
                 ser.flushOutput()
                 port_open = True
@@ -249,7 +252,7 @@ class MyInterface:
         consumer.start()
 
 
-        ser.write(1)
+        ser.write(bytearray('#','ascii'))
 
         global instant
         global StopSerial
@@ -278,6 +281,7 @@ class MyInterface:
 
                 if StopSerial:
                     print("Acquisition completed")
+                    ser.write(bytearray('!','ascii'))
                     # Update acquisition number
                     self.e3.delete(0, 'end')
                     self.acquisition_number = self.acquisition_number + 1

@@ -1,9 +1,3 @@
-/*
-*   For Teensy 3.x it fills the buffer automatically using PDB
-    For Teensy LC you can fill it yourself by pressing c
-
-    For all boards you can see the buffer's contents by pressing p.
-*/
 
 #include <Arduino.h>
 #include <Encoder.h>
@@ -34,6 +28,9 @@ uint16_t print_index = 0;
 bool printbuffer = false;
 bool acquisitionStarted = false;
 int Encodeur_val = 0;
+int received_byte = 0;
+
+void restartAcquisition();
 
 void setup() {
     Serial.begin(115200);
@@ -47,8 +44,6 @@ void setup() {
     delay(1000);
     pinMode(13, OUTPUT); //Init LED 13
     digitalWriteFast(13, HIGH); //Turn on LED 13
-
-    //while(!Serial.available());
     
     myTimer.begin(getMeasures, 500);
 }
@@ -60,10 +55,6 @@ void getMeasures(){
         for(uint8_t i = 0 ; i < kNumberOfElectrodes; i++)
         {   
             current_data = analogRead(electrodPins[i]);
-            if(current_data == 0)
-            {
-            current_data = 1;
-            }
 
             pin_data[i][current_index] = current_data;              // 10010011
             pin_data[i][current_index + 1] = (current_data >> 8);   // 10000110
@@ -74,16 +65,12 @@ void getMeasures(){
         {
             Encodeur_val =  encoderTab[i].read();
 
-            if (Encodeur_val > 360){
-            Encodeur_val = Encodeur_val%360; //modulo 360
-            }
-            else if (Encodeur_val < 0){
-            Encodeur_val = Encodeur_val%360 + 360;
-            } 
-            else if (Encodeur_val == 0){
-            Encodeur_val = 1;
-            }
+            if (Encodeur_val > 360) 
+                Encodeur_val = Encodeur_val%360; //modulo 360
         
+            else if (Encodeur_val < 0)
+                Encodeur_val = Encodeur_val%360 + 360;
+            
             current_data = Encodeur_val;
             pin_data[i+kNumberOfElectrodes][current_index] = current_data;             
             pin_data[i+kNumberOfElectrodes][current_index + 1] = (current_data >> 8);
@@ -92,33 +79,43 @@ void getMeasures(){
 
         current_index += 2;
 
-        if (current_index % kPartitionSize == 0) 
+        if (current_index % kPartitionSize == 0) //Si current_index == 100 ou 200 
         {
             print_index = current_index - kPartitionSize;
             printbuffer = true;
         }  
-        current_index = current_index % kBufferSize;
+        current_index = current_index % kBufferSize; //Met le count à 0 ou 100
     }
 }
 
-void loop() {
-    // if(printbuffer){
-    //   for(size_t i = 0; i < kNumberOfElectrodes + kNumberOfEncodeur ; i++)
-    //   {
-    //       Serial.write(0xFF);
-    //       Serial.write(0xFF);
-    //       Serial.write(i+1);
-    //       Serial.write(pin_data[i] + print_index, kPartitionSize); //Send the last 10 bytes of data from the sensor i     
-    //   }
+void loop(){
+    if(printbuffer){
+      for(size_t i = 0; i < kNumberOfElectrodes + kNumberOfEncodeur ; i++)
+      {
+          Serial.write(0xFF);
+          Serial.write(0xFF);
+          Serial.write(i+1);
+          Serial.write(pin_data[i] + print_index, kPartitionSize); //Send the last 10 bytes of data from the sensor i     
+      }
       
-    //   printbuffer = false;
-    // }
-    Serial.print(analogRead(14));
-    Serial.print("\t");
-    Serial.println(analogRead(15));
+      printbuffer = false;
+    }
+
+    if(Serial.available() > 0){
+        received_byte = Serial.read();
+
+        if(received_byte == '#')
+            acquisitionStarted = true;
+        
+        else if(received_byte == '!')
+            restartAcquisition();
+    }
 }
 
-
+void restartAcquisition(){
+    acquisitionStarted = false;
+    current_index = 0;
+}
 
 
 
