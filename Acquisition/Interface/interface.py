@@ -18,7 +18,7 @@ kMesurePerSecond = 2000 # Hertz (For each electrodes)
 instant = 0
 StopSerial = False
 
-comPort = "COM24"
+comPort = "COM3"
 
 def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq_time, n_mesures, file_path):
 
@@ -81,7 +81,7 @@ class MyInterface:
         self.acquisition_time = 1
         self.movement_class = "MovementClass"
         self.acquisition_number = 1
-        self.n_electrodes = 2
+        self.n_electrodes = 3
         self.n_mesures = 0
         self.file_name = ""
         self.file_path = ""

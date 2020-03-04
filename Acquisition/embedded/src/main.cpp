@@ -6,12 +6,12 @@ IntervalTimer myTimer;
 void getMeasures();
 
 const uint8_t kNumberOfElectrodes = 2;
-const uint8_t kNumberOfEncodeur = 0;
+const uint8_t kNumberOfEncodeur = 1;
 const uint8_t electrodPins[kNumberOfElectrodes] = {14, 15};
 
 // Declare all encoders and their pins
-Encoder enc1(22, 23);
-Encoder encoderTab[kNumberOfEncodeur];// = {enc1};
+Encoder enc1(19, 20);
+Encoder encoderTab[kNumberOfEncodeur] = {enc1};
 
 // Data buffer
 const uint16_t kBufferSize = 200;                           //Size du buffer en data
@@ -63,7 +63,7 @@ void getMeasures(){
         //Encodeur 1 : La valeur 0 n'est pas permise
         for(uint8_t i = 0; i< kNumberOfEncodeur; i++)
         {
-            Encodeur_val =  encoderTab[i].read();
+            Encodeur_val =  encoderTab[i].read()*360/1600;
 
             if (Encodeur_val > 360) 
                 Encodeur_val = Encodeur_val%360; //modulo 360
