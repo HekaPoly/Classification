@@ -15,7 +15,7 @@ const uint8_t kNumberOfElectrodes = 2;
 const uint8_t kNumberOfEncodeur = 0;
 const uint8_t electrodPins[kNumberOfElectrodes] = {14, 15};
 
-// Declare all encoders and there pins
+// Declare all encoders and their pins
 Encoder enc1(22, 23);
 Encoder encoderTab[kNumberOfEncodeur];// = {enc1};
 
@@ -48,7 +48,8 @@ void setup() {
     pinMode(13, OUTPUT); //Init LED 13
     digitalWriteFast(13, HIGH); //Turn on LED 13
 
-    while(!Serial.available());
+    //while(!Serial.available());
+    
     myTimer.begin(getMeasures, 500);
 }
 
@@ -101,17 +102,20 @@ void getMeasures(){
 }
 
 void loop() {
-    if(printbuffer){
-      for(size_t i = 0; i < kNumberOfElectrodes + kNumberOfEncodeur ; i++)
-      {
-          Serial.write(0);
-          Serial.write(0);
-          Serial.write(i+1);
-          Serial.write(pin_data[i] + print_index, kPartitionSize); //Send the last 10 bytes of data from the sensor i     
-      }
+    // if(printbuffer){
+    //   for(size_t i = 0; i < kNumberOfElectrodes + kNumberOfEncodeur ; i++)
+    //   {
+    //       Serial.write(0xFF);
+    //       Serial.write(0xFF);
+    //       Serial.write(i+1);
+    //       Serial.write(pin_data[i] + print_index, kPartitionSize); //Send the last 10 bytes of data from the sensor i     
+    //   }
       
-      printbuffer = false;
-    }
+    //   printbuffer = false;
+    // }
+    Serial.print(analogRead(14));
+    Serial.print("\t");
+    Serial.println(analogRead(15));
 }
 
 

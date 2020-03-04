@@ -30,10 +30,12 @@ def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq
 
     while True:
         low = q.get()
-        # print("low = " + str(low))
         high = q.get()
+
+        # print("low = " + str(low))
         # print("high = " + str(high))
-        if(low == 0 and high == 0):
+        
+        if(low == 0xFF and high == 0xFF):
                 pin_number = int(q.get())
                 # print("pin number is " + str(pin_number))
         else :
