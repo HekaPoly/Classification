@@ -13,7 +13,7 @@ IntervalTimer myTimer;
 
 // asm instructions allow more precise delays than the built-in delay functions
 
-const uint8_t kNumberOfElectrodes = 2;
+const uint8_t kNumberOfElectrodes = 1;
 const uint8_t kNumberOfEncodeur = 1;
 const uint8_t readPin[kNumberOfElectrodes] = {A0};
 const uint16_t kBufferSize = 200;

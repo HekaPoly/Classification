@@ -18,7 +18,7 @@ kMesurePerSecond = 2000 # Hertz (For each electrodes)
 instant = 0
 StopSerial = False
 
-comPort = "COM3"
+comPort = "COM4"
 
 def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq_time, n_mesures, file_path):
 
@@ -39,7 +39,7 @@ def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq
         
         if(low == 0xFF and high == 0xFF):
                 pin_number = int(q.get())
-                # print("pin number is " + str(pin_number))
+                print("pin number is " + str(pin_number))
         else :
             value = low + (high << 8)
             # print("value = " + str(value))
@@ -81,7 +81,7 @@ class MyInterface:
         self.acquisition_time = 1
         self.movement_class = "MovementClass"
         self.acquisition_number = 1
-        self.n_electrodes = 3
+        self.n_electrodes = 1
         self.n_mesures = 0
         self.file_name = ""
         self.file_path = ""
