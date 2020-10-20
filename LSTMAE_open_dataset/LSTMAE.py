@@ -1,4 +1,3 @@
-
 #LSTM-Autoencoder Training
 
 import numpy as np
