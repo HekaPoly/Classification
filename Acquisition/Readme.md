@@ -2,9 +2,10 @@
 
 ## Structure des fichiers
 
-- Acquisition
-  - Data: toutes les données de Métis regrouper selon le nombre d'électrodes utilisées pour faire l'acquisitiondes données
-  
+- Acqu
+  - 
+- Data
+  - Toutes les données de Métis regrouper selon le nombre d'électrodes utilisées pour faire l'acquisitiondes données
 - embedded
   - Programme pour le teensy
 - Interface
