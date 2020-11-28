@@ -3,10 +3,10 @@
 ## Structure des fichiers
 
 - Acqu
-  - Vieux code main
+  - Code
+- Data
+  - Toutes les données de Métis regrouper selon le nombre d'électrodes utilisées pour faire l'acquisitiondes données
 - embedded
   - Programme pour le teensy
-- hostReception
-  - Vieux code pour lire les données + data
 - Interface
   - Interface python et data
