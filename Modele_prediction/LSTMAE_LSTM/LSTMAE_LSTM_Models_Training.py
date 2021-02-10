@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import keras
 from sklearn.preprocessing import normalize
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -190,7 +191,7 @@ def evaluate_model(X_train, y_train, X_test, y_test):
 # main function
 def run_experiment():
 
-    file_name = "PATH TO DATA"
+    file_name = "C:\\Users\\Claudia\\Documents\\Classification\\Acquisition\\Data\\7_electrodes\\regroupement_des donnes_par_categorie\\test_data"
     X_data, Y_data = extract_features(file_name)
     X_train, X_test, y_train, y_test = train_test_split(
         X_data, Y_data, stratify=Y_data,test_size=0.30, random_state=42
