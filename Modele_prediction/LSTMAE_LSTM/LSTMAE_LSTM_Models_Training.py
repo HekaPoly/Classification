@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import keras
+import os
 from sklearn.preprocessing import normalize
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -78,7 +79,7 @@ def label_category(category, windows_length):
 
 #Visualize reconstruction of input data to evaluate the performance of the autoencoder
 def visualize_reconstruction(X, model):
-    X_predict = encoder_decoder.predict(X)
+    X_predict = model.predict(X)
       
     fig, axs = plt.subplots(2)
     fig.suptitle('Reconstruction')
@@ -130,13 +131,17 @@ def evaluate_AE_model(X):
     # Compile the model
     n_epochs = 10
     encoder_decoder.compile(optimizer=opt, loss='mse')
+    encoder_decoder.summary()
 
     # Fit data to model
     encoder_decoder.fit(X, X, epochs=n_epochs,verbose=1, batch_size=100)
 
     #Save the model
-    encoder_decoder.save("PATH TO OUTPUT DIR")
-
+    if os.name == 'nt': # Windows
+        encoder_decoder.save("..\\" + str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" ) 
+    else: # Linux/Mac
+        encoder_decoder.save("../" + str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" )
+    
     #Extract features
     encoder = Model(inputs=encoder_decoder.inputs, outputs=encoder_decoder.layers[1].output)
     X_encoded = encoder.predict(X)
@@ -168,6 +173,7 @@ def evaluate_model(X_train, y_train, X_test, y_test):
     opt = keras.optimizers.Adam(learning_rate=0.001)
     n_epochs = 150
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+    model.summary()
 
     # Fit data to model
     model.fit(X_train, y_train, epochs=n_epochs, batch_size=50)
@@ -176,7 +182,10 @@ def evaluate_model(X_train, y_train, X_test, y_test):
 
 
     #Save the model
-    model.save("PATH TO OUTPUT DIR")
+    if os.name == 'nt': # Windows
+        model.save("..\\" + str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
+    else: #Linux/Mac
+        model.save("../" + str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
 
     # Generate generalization metrics
     y_pred = model.predict(X_test)
@@ -191,7 +200,10 @@ def evaluate_model(X_train, y_train, X_test, y_test):
 # main function
 def run_experiment():
 
-    file_name = "C:\\Users\\Claudia\\Documents\\Classification\\Acquisition\\Data\\7_electrodes\\regroupement_des donnes_par_categorie\\test_data"
+    if os.name == 'nt': # Windows
+        file_name = 'C:\\..\\..\\Acquisition\\Data\\7_electrodes\\regroupement_des donnes_par_categorie\\test_data'
+    else: # Linux/Mac
+        file_name = '../../Acquisition/Data/7_electrodes/regroupement_des donnes_par_categorie/test_data'
     X_data, Y_data = extract_features(file_name)
     X_train, X_test, y_train, y_test = train_test_split(
         X_data, Y_data, stratify=Y_data,test_size=0.30, random_state=42
