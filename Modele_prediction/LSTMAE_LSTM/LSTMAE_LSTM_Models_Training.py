@@ -138,7 +138,7 @@ def evaluate_AE_model(X):
 
     #Save the model
     if os.name == 'nt': # Windows
-        encoder_decoder.save("..\\" + str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" ) 
+        encoder_decoder.save(str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" ) 
     else: # Linux/Mac
         encoder_decoder.save("../" + str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" )
     
@@ -183,7 +183,7 @@ def evaluate_model(X_train, y_train, X_test, y_test):
 
     #Save the model
     if os.name == 'nt': # Windows
-        model.save("..\\" + str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
+        model.save(str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
     else: #Linux/Mac
         model.save("../" + str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
 
@@ -201,9 +201,9 @@ def evaluate_model(X_train, y_train, X_test, y_test):
 def run_experiment():
 
     if os.name == 'nt': # Windows
-        file_name = 'C:\\..\\..\\Acquisition\\Data\\7_electrodes\\regroupement_des donnes_par_categorie\\test_data'
+        file_name = '..\\..\\Acquisition\\Data\\7_electrodes_Philippe\\regroupement_des donnes_par_categorie\\test_data'
     else: # Linux/Mac
-        file_name = '../../Acquisition/Data/7_electrodes/regroupement_des donnes_par_categorie/test_data'
+        file_name = '../../Acquisition/Data/7_electrodes_Philippe/regroupement_des donnes_par_categorie/test_data'
     X_data, Y_data = extract_features(file_name)
     X_train, X_test, y_train, y_test = train_test_split(
         X_data, Y_data, stratify=Y_data,test_size=0.30, random_state=42
