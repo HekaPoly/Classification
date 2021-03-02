@@ -1,5 +1,5 @@
 import tensorflow as tf
-import pandas as pd
+
 
 from encoder import Encoder
 
@@ -30,6 +30,3 @@ class Model:
         history = self.model.fit(x_train, y_train, epochs=n_epoch, validation_data=(x_test, y_test), callbacks=[cp_callback])
 
         self.model.save(saved_model_path, include_optimizer=True)
-
-        accuracy.append(max(history.history['val_accuracy']))
-        accuracy = pd.DataFrame(accuracy, columns=['accuracy'])

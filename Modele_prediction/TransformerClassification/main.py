@@ -3,7 +3,10 @@ from sklearn.model_selection import train_test_split
 from model import Model
 
 if __name__ == '__main__':
+    # relative file path to the training data
     file_path = "data"
+
+    # file path to the saved model
     saved_model_path = "model"
 
     categories = ["HandOpen", "HandRest", "ObjectGrip", "PichGrip", "WristExten", "WristFlex", "WristPron", "WristSupi"]
