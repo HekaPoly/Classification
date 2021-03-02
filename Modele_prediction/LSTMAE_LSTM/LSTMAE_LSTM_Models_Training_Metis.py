@@ -34,7 +34,7 @@ def create_time_series(filepath, n_timesteps):
         print(category)
         data = np.load(filepath + "/" + category + "3s_2000Hz.npy")
         data = normalize(data, axis=1)
-        windows = split_into_windows(data, n_timesteps)
+        windows = create_sliding_windows(data, n_timesteps)
         y_category = label_category(category, len(windows))
         if first_y:                                        
             Y = np.array(y_category)
@@ -86,7 +86,7 @@ def visualize_reconstruction(X, model):
     for i in range(100, 150): # Choose intervals
       axs[0].plot(X[i])
       axs[1].plot(X_predict[i])
-
+    plt.show()
 ################### LSTMAE TRAINING SECTION  ##########################
 
 
@@ -109,39 +109,41 @@ def evaluate_AE_model(X):
 
     print("TRAINING LSTM AUTOENCODER")
     
-    n_timesteps = X.shape[1] 
-    n_features = X.shape[2]
+    #n_timesteps = X.shape[1] 
+    #n_features = X.shape[2]
    
     # Architecture utilisée lors de l'essai 5 (87% accuracy de classification)
 
     #create encoder part
-    encoder_decoder = Sequential()
-    encoder_decoder.add(LSTM(128, activation='relu', input_shape=(n_timesteps, n_features), return_sequences=True))
-    encoder_decoder.add(LSTM(64, activation='relu', input_shape=(n_timesteps, n_features), return_sequences=True))
-    encoder_decoder.add(LSTM(32, activation='relu', input_shape=(n_timesteps, n_features), return_sequences=False))
+    #encoder_decoder = Sequential()
+    #encoder_decoder.add(LSTM(128, activation='relu', input_shape=(n_timesteps, n_features), return_sequences=True))
+    #encoder_decoder.add(LSTM(64, activation='relu', input_shape=(n_timesteps, n_features), return_sequences=True))
+    #encoder_decoder.add(LSTM(32, activation='relu', input_shape=(n_timesteps, n_features), return_sequences=False))
 
     #create decoder part
-    encoder_decoder.add(RepeatVector(n_timesteps))
-    encoder_decoder.add(LSTM(32, activation='relu', return_sequences=True))
-    encoder_decoder.add(LSTM(64, activation='relu', return_sequences=True))
-    encoder_decoder.add(LSTM(128, activation='relu', return_sequences=True))
-    encoder_decoder.add(TimeDistributed(Dense(n_features)))
-    opt = keras.optimizers.Adam(learning_rate=0.001)
+    #encoder_decoder.add(RepeatVector(n_timesteps))
+    #encoder_decoder.add(LSTM(32, activation='relu', return_sequences=True))
+    #encoder_decoder.add(LSTM(64, activation='relu', return_sequences=True))
+    #encoder_decoder.add(LSTM(128, activation='relu', return_sequences=True))
+    #encoder_decoder.add(TimeDistributed(Dense(n_features)))
+    #opt = keras.optimizers.Adam(learning_rate=0.001)
 
     # Compile the model
-    n_epochs = 10
-    encoder_decoder.compile(optimizer=opt, loss='mse')
-    encoder_decoder.summary()
+    #n_epochs = 10
+    #encoder_decoder.compile(optimizer=opt, loss='mse')
+    #encoder_decoder.summary()
 
     # Fit data to model
-    encoder_decoder.fit(X, X, epochs=n_epochs,verbose=1, batch_size=100)
+    #encoder_decoder.fit(X, X, epochs=n_epochs,verbose=1, batch_size=100)
 
     #Save the model
-    if os.name == 'nt': # Windows
-        encoder_decoder.save(str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" ) 
-    else: # Linux/Mac
-        encoder_decoder.save("../" + str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" )
-    
+    #if os.name == 'nt': # Windows
+        #encoder_decoder.save(str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw") 
+    #else: # Linux/Mac
+        #encoder_decoder.save(str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw")
+
+    encoder_decoder = load_model("Essai5_modèles/LSTMAE")
+
     #Extract features
     encoder = Model(inputs=encoder_decoder.inputs, outputs=encoder_decoder.layers[1].output)
     X_encoded = encoder.predict(X)
@@ -185,7 +187,7 @@ def evaluate_model(X_train, y_train, X_test, y_test):
     if os.name == 'nt': # Windows
         model.save(str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
     else: #Linux/Mac
-        model.save("../" + str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
+        model.save(str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
 
     # Generate generalization metrics
     y_pred = model.predict(X_test)

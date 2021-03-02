@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import keras
 import os
+import tensorflow as tf
 from sklearn.preprocessing import normalize
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -11,8 +12,14 @@ from keras.utils import to_categorical
  
 ###################   PREPROCESSING SECTION  ##########################
 
+########################################
+config = tf.compat.v1.ConfigProto()    #
+config.gpu_options.allow_growth = True #
+tf.compat.v1.Session(config=config)    #
+########################################
+
 categories = [
-    "HandOpen", "HandRest","ObjectGrip","PichGrip","WristExten","WristFlex","WristPron", "WristSupi"
+    "HandOpen", "HandRest","ObjectGrip","PinchGrip","WristExten","WristFlex","WristPron", "WristSupi"
 ]
 
 #Create 3d array for lstmae training
@@ -87,12 +94,13 @@ def extract_features(filepath):
     X, Y = create_time_series(filepath, n_timesteps)
     print("X.shape", X.shape)
     print("Y.shape", Y.shape)
-    X_encoded, model = evaluate_AE_model(X) #Evaluate model and extract features
-    visualize_reconstruction(X, model)
-    print("X_encoded.shape", X_encoded.shape)
+    # X_encoded, model = evaluate_AE_model(X) #Evaluate model and extract features
+    # visualize_reconstruction(X, model)
+    # print("X_encoded.shape", X_encoded.shape)
 
     Y_categorical = to_categorical(Y) 
-    return X_encoded, Y_categorical
+    # return X_encoded, Y_categorical
+    return X, Y_categorical
 
 
 # Create, train and evaluate LSTMAE model
@@ -131,16 +139,36 @@ def evaluate_AE_model(X):
     if os.name == 'nt': # Windows
         encoder_decoder.save(str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" ) 
     else: # Linux/Mac
-        encoder_decoder.save("../" + str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" )
+        encoder_decoder.save(str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" )
     
     #Extract features
     encoder = Model(inputs=encoder_decoder.inputs, outputs=encoder_decoder.layers[1].output)
     X_encoded = encoder.predict(X)
 
     return X_encoded, encoder_decoder
+    pass
 
 ################### LSTM CLASSIFIER TRAINING SECTION  ##########################
+LR_START = 0.001
+LR_MAX = 0.060 #before 0.06
+LR_MIN = 0.0001
+LR_RAMPUP_EPOCHS = 65
+LR_SUSTAIN_EPOCHS = 2
+LR_EXP_DECAY = .9
 
+def lrfn(epoch):
+    if epoch < LR_RAMPUP_EPOCHS:
+        lr = (LR_MAX - LR_START) / LR_RAMPUP_EPOCHS * epoch + LR_START
+    elif epoch < LR_RAMPUP_EPOCHS + LR_SUSTAIN_EPOCHS:
+        lr = LR_MAX
+    else:
+        lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
+    return lr
+
+# n_epochs = 125
+# lr = [lrfn(epoch) for epoch in range(n_epochs)]
+# plt.plot(lr)
+# plt.show()
 
 # fit and evaluate LSTM
 def evaluate_model(X_train, y_train, X_test, y_test):
@@ -153,21 +181,26 @@ def evaluate_model(X_train, y_train, X_test, y_test):
 
     # Architecture utilisée lors de l'essai 5 (87% accuracy)
     model = Sequential()
-    model.add(LSTM(128, return_sequences=True,input_shape=(n_timesteps, n_features)))
-    model.add(LSTM(75, return_sequences=True,input_shape=( n_timesteps, n_features)))
-    model.add(LSTM(128, input_shape=(n_timesteps, n_features)))
-    model.add(Dropout(0.2))
+    model.add(LSTM(32, return_sequences=True,input_shape=(n_timesteps, n_features)))
+    model.add(Dropout(0.45))
+    model.add(LSTM(32, return_sequences=True))
+    model.add(Dropout(0.45))
+    model.add(LSTM(32, return_sequences=True))
+    model.add(Dropout(0.45))
+    model.add(LSTM(32))
     model.add(Dense(128, activation="relu"))
-    model.add(Dense(n_outputs, activation="softmax"))
+    model.add(Dropout(0.45))
+    model.add(Dense(n_outputs, activation="sigmoid"))
 
     # Compile the model
     opt = keras.optimizers.Adam(learning_rate=0.001)
-    n_epochs = 150
-    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+    n_epochs = 125
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'] )
     model.summary()
 
     # Fit data to model
-    model.fit(X_train, y_train, epochs=n_epochs, batch_size=50)
+    lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose = True)
+    model.fit(X_train, y_train, validation_data=(X_test, y_test),epochs=n_epochs, batch_size=500, callbacks=[lr_callback])
     _, accuracy = model.evaluate(X_test, y_test,verbose=1)
     print('Accuracy: %.2f' % (accuracy*100))
 
@@ -176,7 +209,7 @@ def evaluate_model(X_train, y_train, X_test, y_test):
     if os.name == 'nt': # Windows
         model.save(str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
     else: #Linux/Mac
-        model.save("../" + str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
+        model.save(str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
 
     # Generate generalization metrics
     y_pred = model.predict(X_test)
