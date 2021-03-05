@@ -7,7 +7,7 @@ from sklearn.preprocessing import normalize
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential, Model, load_model
-from keras.layers import LSTM, Dense, RepeatVector, TimeDistributed, Dropout
+from keras.layers import LSTM, Dense, RepeatVector, TimeDistributed, Dropout, Conv1D, Flatten, MaxPooling1D
 from keras.utils import to_categorical
  
 ###################   PREPROCESSING SECTION  ##########################
@@ -32,7 +32,7 @@ def create_time_series(filepath, n_timesteps):
         print(category)
         data = np.load(filepath + "/" + category + ".npy")
         data = normalize(data, axis=1)
-        windows = split_into_windows(data, n_timesteps)
+        windows = create_sliding_windows(data, n_timesteps)
         y_category = label_category(category, len(windows))
         if first_y:                                        
             Y = np.array(y_category)
@@ -139,7 +139,7 @@ def evaluate_AE_model(X):
     if os.name == 'nt': # Windows
         encoder_decoder.save(str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" ) 
     else: # Linux/Mac
-        encoder_decoder.save(str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" )
+        encoder_decoder.save("../" + str(n_timesteps) + "timesteps_" + str(n_epochs) + "_sw" )
     
     #Extract features
     encoder = Model(inputs=encoder_decoder.inputs, outputs=encoder_decoder.layers[1].output)
@@ -149,11 +149,17 @@ def evaluate_AE_model(X):
     pass
 
 ################### LSTM CLASSIFIER TRAINING SECTION  ##########################
+# LR_START = 0.001
+# LR_MAX = 0.060 #before 0.06
+# LR_MIN = 0.0001
+# LR_RAMPUP_EPOCHS = 65
+# LR_SUSTAIN_EPOCHS = 2
+# LR_EXP_DECAY = .9
 LR_START = 0.001
-LR_MAX = 0.060 #before 0.06
-LR_MIN = 0.0001
-LR_RAMPUP_EPOCHS = 65
-LR_SUSTAIN_EPOCHS = 2
+LR_MAX = 0.0020
+LR_MIN = 0.0005
+LR_RAMPUP_EPOCHS = 45
+LR_SUSTAIN_EPOCHS = 10
 LR_EXP_DECAY = .9
 
 def lrfn(epoch):
@@ -165,10 +171,41 @@ def lrfn(epoch):
         lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
     return lr
 
-# n_epochs = 125
-# lr = [lrfn(epoch) for epoch in range(n_epochs)]
-# plt.plot(lr)
-# plt.show()
+n_epochs = 125
+lr = [lrfn(epoch) for epoch in range(n_epochs)]
+plt.plot(lr)
+plt.show()
+
+def make_inception_model(n_timesteps, n_features, n_outputs):
+    initializer = tf.random_normal_initializer(0.,0.2)
+    input_layer = tf.keras.layers.Input(shape=(n_timesteps, n_features), name="inception-input")
+
+    dropout = 0.45
+    conv1 = Conv1D(64, 3, activation='relu')(input_layer)
+    conv1 = Dropout(dropout)(conv1)
+    conv2 = Conv1D(64, 4, activation='relu')(input_layer)
+    conv2 = Dropout(dropout)(conv2)
+    conv3 = Conv1D(64, 6, activation='relu')(input_layer)
+    conv3 = Dropout(dropout)(conv3)
+    x = keras.layers.Concatenate(axis=1)([conv1, conv2, conv3])
+    
+    conv1 = Conv1D(64, 3, activation='relu')(x)
+    conv1 = Dropout(dropout)(conv1)
+    conv2 = Conv1D(64, 4, activation='relu')(x)
+    conv2 = Dropout(dropout)(conv2)
+    conv3 = Conv1D(64, 6, activation='relu')(x)
+    conv3 = Dropout(dropout)(conv3)
+    max_pool = MaxPooling1D(pool_size=3)(x)
+    x = keras.layers.Concatenate(axis=1)([conv1, conv2, conv3, max_pool])
+    x = Flatten()(x)
+    # x = Dropout(0.90)(x)
+    x = Dense(100, activation='relu')(x)
+    x = Dropout(dropout)(x)
+    out = Dense(n_outputs, activation='sigmoid')(x)
+    return Model(inputs=input_layer, outputs=out, name='inception-net1')
+
+
+
 
 # fit and evaluate LSTM
 def evaluate_model(X_train, y_train, X_test, y_test):
@@ -180,27 +217,44 @@ def evaluate_model(X_train, y_train, X_test, y_test):
     n_outputs = y_train.shape[1]
 
     # Architecture utilisée lors de l'essai 5 (87% accuracy)
+    # model = Sequential()
+    # model.add(LSTM(32, return_sequences=True,input_shape=(n_timesteps, n_features)))
+    # model.add(Dropout(0.45))
+    # model.add(LSTM(32, return_sequences=True))
+    # model.add(Dropout(0.45))
+    # model.add(LSTM(32, return_sequences=True))
+    # model.add(Dropout(0.45))
+    # model.add(LSTM(32))
+    # model.add(Dense(128, activation="relu"))
+    # model.add(Dropout(0.45))
+    # model.add(Dense(n_outputs, activation="sigmoid"))
+
+    # model = make_inception_model(n_timesteps, n_features, n_outputs)
+    
     model = Sequential()
-    model.add(LSTM(32, return_sequences=True,input_shape=(n_timesteps, n_features)))
-    model.add(Dropout(0.45))
-    model.add(LSTM(32, return_sequences=True))
-    model.add(Dropout(0.45))
-    model.add(LSTM(32, return_sequences=True))
-    model.add(Dropout(0.45))
-    model.add(LSTM(32))
-    model.add(Dense(128, activation="relu"))
-    model.add(Dropout(0.45))
+    model.add(Conv1D(512, 6, activation='relu', input_shape=(n_timesteps, n_features)))
+    # model.add(Dropout(0.20))
+    model.add(Conv1D(342, 4, activation='relu'))
+    # model.add(Dropout(0.20))
+    model.add(Conv1D(256, 3, activation='relu'))
+    # model.add(Dropout(0.2))
+    # model.add(LSTM(64))
+    # model.add(Dropout(0.30))
+    model.add(Flatten())
+    model.add(Dense(100, activation='relu'))
+    # model.add(Dropout(0.30))
     model.add(Dense(n_outputs, activation="sigmoid"))
 
     # Compile the model
     opt = keras.optimizers.Adam(learning_rate=0.001)
-    n_epochs = 125
+    n_epochs = 25
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'] )
     model.summary()
 
     # Fit data to model
     lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose = True)
-    model.fit(X_train, y_train, validation_data=(X_test, y_test),epochs=n_epochs, batch_size=500, callbacks=[lr_callback])
+    #model.fit(X_train, y_train, validation_data=(X_test, y_test),epochs=n_epochs, batch_size=500, callbacks=[lr_callback])
+    model.fit(X_train, y_train, validation_data=(X_test, y_test),epochs=n_epochs, batch_size=500)
     _, accuracy = model.evaluate(X_test, y_test,verbose=1)
     print('Accuracy: %.2f' % (accuracy*100))
 
@@ -209,7 +263,7 @@ def evaluate_model(X_train, y_train, X_test, y_test):
     if os.name == 'nt': # Windows
         model.save(str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
     else: #Linux/Mac
-        model.save(str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
+        model.save("../" + str(n_epochs) + "_" + str(accuracy * 100) + "_sw")
 
     # Generate generalization metrics
     y_pred = model.predict(X_test)
@@ -230,7 +284,7 @@ def run_experiment():
         file_name = '../../Acquisition/Data/8mouvementOpenDataset'
     X_data, Y_data = extract_features(file_name)
     X_train, X_test, y_train, y_test = train_test_split(
-        X_data, Y_data, stratify=Y_data,test_size=0.30, random_state=42
+        X_data, Y_data, stratify=Y_data,test_size=0.20, random_state=42
     )
     evaluate_model(X_train, y_train, X_test, y_test)
 
