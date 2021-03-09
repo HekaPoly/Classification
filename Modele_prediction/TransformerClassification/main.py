@@ -1,6 +1,7 @@
 from slidingWindow import SlidingWindow
 from sklearn.model_selection import train_test_split
 from model import Model
+import os
 
 if __name__ == '__main__':
     # relative file path to the training data
@@ -8,6 +9,7 @@ if __name__ == '__main__':
 
     # file path to the saved model
     saved_model_path = "model"
+
 
     categories = ["HandOpen", "HandRest", "ObjectGrip", "PichGrip", "WristExten", "WristFlex", "WristPron", "WristSupi"]
 
@@ -25,7 +27,7 @@ if __name__ == '__main__':
     dropout = 0.1
     time_steps = X.shape[1]
     output_size = 8
-    epochs = 10
+    epochs = 20
 
     model = Model(time_steps, n_layers, units, d_model, n_heads, dropout, output_size)
 

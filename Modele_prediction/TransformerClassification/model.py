@@ -4,7 +4,25 @@ import tensorflow as tf
 from encoder import Encoder
 
 
+LR_START = 0.001
+LR_MAX = 0.06
+LR_MIN = 0.0001
+LR_RAMPUP_EPOCHS = 45
+LR_SUSTAIN_EPOCHS = 2
+LR_EXP_DECAY = .9
+
+
 class Model:
+    @staticmethod
+    def lrfn(self, epoch):
+        if epoch < LR_RAMPUP_EPOCHS:
+            lr = (LR_MAX - LR_START) / LR_RAMPUP_EPOCHS * epoch + LR_START
+        elif epoch < LR_RAMPUP_EPOCHS + LR_SUSTAIN_EPOCHS:
+            lr = LR_MAX
+        else:
+            lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY ** (epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
+        return lr
+
     def __init__(self, time_steps, num_layers, units, d_model, num_heads, dropout, output_size, name="transformer"):
         inputs = tf.keras.Input(shape=(None, d_model), name="inputs")
 
@@ -24,9 +42,8 @@ class Model:
         self.model.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 
         # The line that follow comes from : https://www.tensorflow.org/tutorials/keras/save_and_load
-        # Create a callback that saves the model's weights
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath="checkpoint/cp.ckpt", save_weights_only=True, verbose=1)
+        lr_callback = tf.keras.callbacks.LearningRateScheduler(self.lrfn, verbose=True)
 
-        history = self.model.fit(x_train, y_train, epochs=n_epoch, validation_data=(x_test, y_test), callbacks=[cp_callback])
+        history = self.model.fit(x_train, y_train, epochs=n_epoch, validation_data=(x_test, y_test), callbacks=[lr_callback])
 
         self.model.save(saved_model_path, include_optimizer=True)
