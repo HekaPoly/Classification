@@ -1,0 +1,104 @@
+{
+  "@type": "Dataset",
+  "identifier": "10.1038/s41597-019-0285-1",
+  "title": "Metadata record for: A calibrated database of kinematics and EMG of the forearm and hand during activities of daily living",
+  "relatedPublications": [],
+  "repositories": [
+    {
+      "name": "Zenodo",
+      "value": "https://doi.org/10.5281/zenodo.3469380",
+      "@type": "DataCatalog"
+    }
+  ],
+  "assays": [
+    {
+      "measurementType": {
+        "annotationValue": "kinematics",
+        "@type": "PropertyValue"
+      },
+      "technologyType": {
+        "annotationValue": "Sensor Device",
+        "termAccession": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C50166",
+        "termSource": "NCIT",
+        "@type": "PropertyValue"
+      },
+      "@type": "variableMeasured"
+    },
+    {
+      "measurementType": {
+        "annotationValue": "Electromyography",
+        "termAccession": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38056",
+        "termSource": "NCIT",
+        "@type": "PropertyValue"
+      },
+      "technologyType": {
+        "annotationValue": "electromyography",
+        "termAccession": "http://purl.obolibrary.org/obo/ERO_0000499",
+        "termSource": "ERO",
+        "@type": "PropertyValue"
+      },
+      "@type": "variableMeasured"
+    }
+  ],
+  "factors": [
+    {
+      "name": "activity of daily living",
+      "type": {
+        "annotationValue": "Biomechanics",
+        "termAccession": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16346",
+        "termSource": "NCIT",
+        "@type": "PropertyValue"
+      },
+      "@type": "variableMeasured"
+    }
+  ],
+  "studyCharacteristics": {
+    "organism": [
+      {
+        "annotationValue": "Homo sapiens",
+        "termAccession": "http://purl.bioontology.org/ontology/NCBITAXON/9606",
+        "termSource": "NCBITAXON",
+        "@type": "PropertyValue"
+      }
+    ],
+    "environmentType": [],
+    "geographicalLocation": [],
+    "@type": "variableMeasured"
+  },
+  "ontologySourceReferences": {
+    "NCIT": {
+      "name": "NCIT",
+      "description": "National Cancer Institute Thesaurus",
+      "file": "http://data.bioontology.org/ontologies/NCIT",
+      "version": "20.01d",
+      "@type": "DefinedTermSet"
+    },
+    "ERO": {
+      "name": "ERO",
+      "description": "Eagle-I Research Resource Ontology",
+      "file": "http://data.bioontology.org/ontologies/ERO",
+      "version": "2013-08-02",
+      "@type": "DefinedTermSet"
+    },
+    "NCBITAXON": {
+      "name": "NCBITAXON",
+      "description": "National Center for Biotechnology Information (NCBI) Organismal Classification",
+      "file": "http://data.bioontology.org/ontologies/NCBITAXON",
+      "version": "2019AB",
+      "@type": "DefinedTermSet"
+    },
+    "@type": "CategoryCodeSet"
+  },
+  "comments": [
+    {
+      "name": "Created With Configuration",
+      "value": "1.0",
+      "@type": "SoftwareApplication"
+    },
+    {
+      "name": "Data Descriptor License",
+      "value": "CC-BY-4.0",
+      "@type": "CreativeWork"
+    }
+  ]
+}
