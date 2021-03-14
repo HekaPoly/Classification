@@ -22,6 +22,9 @@ _autosave-*
 *.csv
 *.tmp
 
+# Python
+*.pyc
+
 # Office Files
 # Word temporary
 ~$*.doc*
