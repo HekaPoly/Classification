@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 N_PHASES = 3
 N_ANGLES = 18
+N_ELECTRODES = 7
 
 def display_angle_sequence(angle_data, sequence):
     for j in range(N_PHASES):
@@ -30,14 +31,14 @@ def generate_np_dataset(emg_data, angle_data):
             emg_phase = emg_data[N_PHASES * sequence + i]
             angle_phase = angle_data[N_PHASES * sequence + i]
             
-            if i > 0:
-                if emg_phase.shape[1] == N_ANGLES and phase_data.shape[1] == N_PHASES:
+            if emg_phase.shape[1] == N_ELECTRODES and angle_phase.shape[1] == N_ANGLES:
+                if i > 0:
                     emg_seq = np.concatenate((emg_phase, emg_seq), axis=0)
                     angle_seq = np.concatenate((angle_phase, angle_seq), axis=0)
-            else:
-                emg_seq = emg_phase
-                angle_seq = angle_phase
-
+                else:
+                    emg_seq = emg_phase
+                    angle_seq = angle_phase
+        
         emg_array.append(emg_seq)
         angle_array.append(angle_seq)
 
@@ -58,7 +59,7 @@ if __name__=="__main__":
     print(emg_data.shape)
     print(angle_data.shape)
     with open(filepath + '/dataset_emg_angles.npz', 'wb') as file:
-        np.savez(file, emg_data=emg_data, angle_data=angle_data)
+        np.savez_compressed(file, emg_data=emg_data, angle_data=angle_data)
 
     # Loading file exemple
     with open(filepath + '/dataset_emg_angles.npz', 'rb') as file:
