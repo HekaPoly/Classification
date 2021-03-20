@@ -14,12 +14,12 @@ tf.compat.v1.Session(config=config)    #
 ########################################
 
 class ModelConv(object):
-    def __init__(self, n_angles, n_electrods, n_timesteps):
-        self.model = self._create_model(n_angles, n_electrods, n_timesteps)
+    def __init__(self, n_angles, n_electrodes, n_timesteps):
+        self.model = self._create_model(n_angles, n_electrodes, n_timesteps)
         
-    def _create_model(self, n_angles, n_electrods, n_timesteps):
+    def _create_model(self, n_angles, n_electrodes, n_timesteps):
         model = Sequential(name="conv_angle_v1")
-        model.add(Conv1D(512, 6, activation='relu', input_shape=(n_timesteps, n_electrods)))
+        model.add(Conv1D(512, 6, activation='relu', input_shape=(n_timesteps, n_electrodes)))
         model.add(Conv1D(342, 4, activation='relu'))
         model.add(Conv1D(256, 3, activation='relu'))
         model.add(Flatten())

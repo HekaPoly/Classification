@@ -1,48 +1,73 @@
+import numpy as np
 from convnet import ModelConv
 from scipy.io import loadmat
 import os
+from os import path
 from keras.utils import to_categorical
 from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-# Extract features
-def extract_features(filepath):
-    n_timesteps = 30
-    X, Y = create_time_series(filepath, n_timesteps)
-    print("X.shape", X.shape)
-    print("Y.shape", Y.shape)
-    Y_categorical = to_categorical(Y)
+#Label one category
+def label_category(category, windows_length):
+    indexLabel = categories.index(category)
+    Y = np.full((windows_length, 1), indexLabel)
+    return Y
 
-    return X, Y_categorical
-
-#Create 3d array
+#Create 3d array for lstmae training
 def create_time_series(filepath, n_timesteps):
     time_series = []
     Y = []
     first_y = True 
     first_windows = True
+    for category in categories:
+        print(category)
+        data = np.load(filepath + "/" + category + ".npy")
+        data = normalize(data, axis=1)
+        windows = create_sliding_windows(data, n_timesteps)
+        y_category = label_category(category, len(windows))
+        if first_y:                                        
+            Y = np.array(y_category)
+            first_y = False
+        else:
+            Y = np.vstack((Y,y_category))
 
-    data = loadmat(filepath + "/KIN_MUS_UJI.mat")
-    data = normalize(data, axis=1)
-    windows = create_sliding_windows(data, n_timesteps)
-    if first_windows:                                   
-        time_series = windows
-        first_windows = False
-    else:
-        time_series = np.vstack((time_series, windows))
-    
+        if first_windows:                                   
+            time_series = windows
+            first_windows = False
+        else:
+            time_series = np.vstack((time_series, windows))
+
     return time_series, Y
 
-    # Create sliding windows of n_timesteps (data augmentation technique)
+
+
+def create_time_serie(emg_data, angle_data, n_timesteps):
+    for i in range(emg_data.shape[0]):
+        windows = create_sliding_windows(emg_data[i], n_timesteps)
+        angles = create_sliding_windows(angle_data[i], n_timesteps)
+        if 0 < i:
+            #windows = np.asarray([windows])
+            # print(i, windows.shape, time_series.shape)
+            emg_series = np.vstack((emg_series, windows))
+            angle_series = np.vstack((angle_series, angles))
+        else:
+            emg_series = windows
+            angle_series = angles
+        
+    return emg_series, angle_series
+
+# Create sliding windows of n_timesteps (data augmentation technique)
 def create_sliding_windows(data, n_timesteps):
     windows = []
-    for i in range(data.shape[0] - n_timesteps):
+    for i in range(data.shape[0] - n_timesteps + 1):
         windows.append(data[i: i + n_timesteps])
-
     return np.array(windows)
 
-TOTAL_SEQUENCES = 512
+TOTAL_SEQUENCES = 572
+N_PHASES = 3
+N_ANGLES = 18
+N_ELECTRODES = 7
 
 if __name__=="__main__":
     if os.name == 'nt': # Windows
@@ -50,44 +75,65 @@ if __name__=="__main__":
     else: # Linux/Mac
         filepath = "../../Acquisition/Data/Dataset_avec_angles_tester"
 
-    data = loadmat(filepath + "/KIN_MUS_UJI.mat")
-    #graph electrodes
-    electrodes_values = []
-    # electrod data array(list) [data][wrapper][sequence?][point in seq][electrode_data]
-    # for electrode in range(len(data['EMG_KIN_v4']['EMG_data'][0][0][0])):
-    #     electrodes_values.append([])
-    #     for i in range(len(data['EMG_KIN_v4']['EMG_data'][0][0])):
-    #         electrodes_values[-1].append(data['EMG_KIN_v4']['EMG_data'][0][0][i][electrode]) 
-    
-    # for electrode in electrodes_values:
-    #     plt.plot(electrode)
-    # plt.show()
+    with open(filepath + '/dataset_emg_angles.npz', 'rb') as file:
+        data = np.load(file, allow_pickle=True)
+        emg_data = data["emg_data"]
+        angle_data = data["angle_data"]
 
-    angle_values = [[] for i in range(18)]
-    angle_data = data['EMG_KIN_v4']['Kinematic_data'][0]
-    phase_data = data['EMG_KIN_v4']['Phase'][0]
-    q = 3
-    
-    #for j in range(2): # le nombre de phase
-    
-    sequence = 5
-    for j in range(3):
-        for angle in range(18):
-            for i in range(len(angle_data[3*sequence + j])):
-                print(i, j, angle)
-                angle_values[angle].append(angle_data[3*sequence + j][i][angle])
-    
-    for angle in angle_values:
-        plt.plot(angle)
-    plt.show()
-    # print(len(electrodes_values))
-    # print(data['EMG_KIN_v4']['Kinematic_data'][0][0]) # maybe angles array of list
-    # print(data['EMG_KIN_v4']['Subject'][0][0])
-    # for seq in data['EMG_KIN_v4']['EMG_data']:
-    #     print(seq)
+    print(emg_data.shape)
+    print(angle_data.shape)
 
-    # X_data, Y_data = extract_features(filepath)
-    # X_train, X_test, y_train, y_test = train_test_split(
-    #     X_data, Y_data, stratify = Y_data,test_size=0.20, random_state=42
-    # ) [[asdf]]
+    # Data normalization
+    angle_data = angle_data/180.0
+    # x_train = emg_data
+    x_train, x_test, y_train, y_test = train_test_split(
+        emg_data, angle_data, test_size=0.15, random_state=42
+    )
+    
+    print(x_train.shape, x_test.shape)
+    print(y_train.shape, y_test.shape)
+    print(x_train[0].shape)
+    print(x_train[151].shape)
+    # x_train = create_sliding_windows(x_train[0], 30)
+    # x_test = create_sliding_windows(x_test, 30)
+    # y_train = create_sliding_windows(y_train[0], 30)
+    # y_test = create_sliding_windows(y_test[0], 30)
+    
+    # print(sx_train.shape)
+    
+    n_timesteps = 30
+    if not path.exists('dataset_processed.npy'):
+        
+        x_train, y_train = create_time_serie(x_train, y_train, n_timesteps)
+        x_test, y_train = create_time_serie(x_test, y_test, n_timesteps)
+
+        with open('dataset_processed.npy', 'wb') as f:
+            np.save(f, x_train)
+            np.save(f, y_train)
+            np.save(f, x_test)
+            np.save(f, y_test)
+            
+    else:
+        with open('dataset_processed.npy', 'rb') as f:
+            x_train = np.load(f, allow_pickle=True)
+            y_train = np.load(f, allow_pickle=True)
+            x_test = np.load(f, allow_pickle=True)
+            y_test = np.load(f, allow_pickle=True)
+            
+    print(x_train.shape, x_test.shape)
+    print(y_train.shape, y_test.shape)
+
+    batch = 30
+    batch_size = 500
+
+    model = ModelConv(N_ANGLES, N_ELECTRODES, n_timesteps)
+    print(x_train.shape, y_train.shape)
+    model.train(x_train, y_train, x_test, y_test, batch, batch_size)
+
+
+    # l-sl + 1
+
+    # [1, 2, 3, 4]
+    # [[1,2],[2,3],[3,4]]
+    # [[1,2,3], [2,3,4]]
 
