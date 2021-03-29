@@ -14,38 +14,43 @@ def label_category(category, windows_length):
     Y = np.full((windows_length, 1), indexLabel)
     return Y
 
-#Create 3d array for lstmae training
-def create_time_series(filepath, n_timesteps):
-    time_series = []
-    Y = []
-    first_y = True 
-    first_windows = True
-    for category in categories:
-        print(category)
-        data = np.load(filepath + "/" + category + ".npy")
-        data = normalize(data, axis=1)
-        windows = create_sliding_windows(data, n_timesteps)
-        y_category = label_category(category, len(windows))
-        if first_y:                                        
-            Y = np.array(y_category)
-            first_y = False
-        else:
-            Y = np.vstack((Y,y_category))
+# #Create 3d array for lstmae training
+# def create_time_series(filepath, n_timesteps):
+#     time_series = []
+#     Y = []
+#     first_y = True 
+#     first_windows = True
+#     for category in categories:
+#         print(category)
+#         data = np.load(filepath + "/" + category + ".npy")
+#         data = normalize(data, axis=1)
+#         windows = create_sliding_windows(data, n_timesteps)
+#         y_category = label_category(category, len(windows))
+#         if first_y:                                        
+#             Y = np.array(y_category)
+#             first_y = False
+#         else:
+#             Y = np.vstack((Y,y_category))
 
-        if first_windows:                                   
-            time_series = windows
-            first_windows = False
-        else:
-            time_series = np.vstack((time_series, windows))
+#         if first_windows:                                   
+#             time_series = windows
+#             first_windows = False
+#         else:
+#             time_series = np.vstack((time_series, windows))
 
-    return time_series, Y
+#     return time_series, Y
 
-
+def create_angles(angle_data, n_timesteps):
+    pass
 
 def create_time_serie(emg_data, angle_data, n_timesteps):
     for i in range(emg_data.shape[0]):
         windows = create_sliding_windows(emg_data[i], n_timesteps)
-        angles = create_sliding_windows(angle_data[i], n_timesteps)
+        angles = angle_data[i][n_timesteps:]
+        # print("EMG :", emg_data[i].shape)
+        # print("Windows :", windows.shape)
+        # print("Angles :", angles.shape)
+        # print("\n")
         if 0 < i:
             #windows = np.asarray([windows])
             # print(i, windows.shape, time_series.shape)
@@ -54,13 +59,14 @@ def create_time_serie(emg_data, angle_data, n_timesteps):
         else:
             emg_series = windows
             angle_series = angles
-        
+
+    print("EMG shape :", emg_series.shape, "Angles shape :", angle_series.shape)
     return emg_series, angle_series
 
 # Create sliding windows of n_timesteps (data augmentation technique)
 def create_sliding_windows(data, n_timesteps):
     windows = []
-    for i in range(data.shape[0] - n_timesteps + 1):
+    for i in range(data.shape[0] - n_timesteps):
         windows.append(data[i: i + n_timesteps])
     return np.array(windows)
 
@@ -80,8 +86,8 @@ if __name__=="__main__":
         emg_data = data["emg_data"]
         angle_data = data["angle_data"]
 
-    print(emg_data.shape)
-    print(angle_data.shape)
+    print("EMG dataset size:", emg_data.shape)
+    print("Angle size:", angle_data.shape)
 
     # Data normalization
     angle_data = angle_data/180.0
@@ -90,10 +96,10 @@ if __name__=="__main__":
         emg_data, angle_data, test_size=0.15, random_state=42
     )
     
-    print(x_train.shape, x_test.shape)
-    print(y_train.shape, y_test.shape)
-    print(x_train[0].shape)
-    print(x_train[151].shape)
+    # print(x_train.shape, x_test.shape)
+    # print(y_train.shape, y_test.shape)
+    # print(x_train[0].shape)
+    # print(x_train[151].shape)
     # x_train = create_sliding_windows(x_train[0], 30)
     # x_test = create_sliding_windows(x_test, 30)
     # y_train = create_sliding_windows(y_train[0], 30)
@@ -103,10 +109,9 @@ if __name__=="__main__":
     
     n_timesteps = 30
     if not path.exists('dataset_processed.npy'):
-        
         x_train, y_train = create_time_serie(x_train, y_train, n_timesteps)
-        x_test, y_train = create_time_serie(x_test, y_test, n_timesteps)
-
+        x_test, y_test = create_time_serie(x_test, y_test, n_timesteps)
+        
         with open('dataset_processed.npy', 'wb') as f:
             np.save(f, x_train)
             np.save(f, y_train)
@@ -119,15 +124,13 @@ if __name__=="__main__":
             y_train = np.load(f, allow_pickle=True)
             x_test = np.load(f, allow_pickle=True)
             y_test = np.load(f, allow_pickle=True)
-            
-    print(x_train.shape, x_test.shape)
-    print(y_train.shape, y_test.shape)
 
     batch = 30
     batch_size = 500
 
     model = ModelConv(N_ANGLES, N_ELECTRODES, n_timesteps)
-    print(x_train.shape, y_train.shape)
+    print("x train shape :", x_train.shape, "y train shape :", y_train.shape)
+    print("x test shape :", x_test.shape, "y test shape :", y_test.shape)
     model.train(x_train, y_train, x_test, y_test, batch, batch_size)
 
 
