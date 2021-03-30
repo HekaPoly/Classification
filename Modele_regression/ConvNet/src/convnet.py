@@ -24,7 +24,7 @@ class ModelConv(object):
         model.add(Conv1D(256, 3, activation='relu'))
         model.add(Flatten())
         model.add(Dense(100, activation='relu'))
-        model.add(Dense(n_angles, activation='linear'))
+        model.add(Dense(n_angles))
         model.compile(loss='mse', optimizer='adam')
         return model
 
