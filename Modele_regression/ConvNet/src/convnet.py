@@ -19,9 +19,10 @@ class ModelConv(object):
         
     def _create_model(self, n_angles, n_electrodes, n_timesteps):
         model = Sequential(name="conv_angle_v1")
-        model.add(Conv1D(512, 6, activation='relu', input_shape=(n_timesteps, n_electrodes)))
-        model.add(Conv1D(342, 4, activation='relu'))
-        model.add(Conv1D(256, 3, activation='relu'))
+        model.add(tf.keras.layers.GaussianNoise(0.1))
+        model.add(Conv1D(256, 6, activation='linear', input_shape=(n_timesteps, n_electrodes)))
+        model.add(Conv1D(256, 4, activation='linear'))
+        model.add(Conv1D(256, 3, activation='linear'))
         model.add(Flatten())
         model.add(Dense(100, activation='relu'))
         model.add(Dense(n_angles))
