@@ -46,7 +46,7 @@ def create_angles(angle_data, n_timesteps):
 def create_time_serie(emg_data, angle_data, n_timesteps):
     for i in range(emg_data.shape[0]):
         windows = create_sliding_windows(emg_data[i], n_timesteps)
-        angles = angle_data[i][n_timesteps:]
+        angles = angle_data[i][n_timesteps-1:]
         # print("EMG :", emg_data[i].shape)
         # print("Windows :", windows.shape)
         # print("Angles :", angles.shape)
@@ -66,7 +66,7 @@ def create_time_serie(emg_data, angle_data, n_timesteps):
 # Create sliding windows of n_timesteps (data augmentation technique)
 def create_sliding_windows(data, n_timesteps):
     windows = []
-    for i in range(data.shape[0] - n_timesteps):
+    for i in range(data.shape[0] - n_timesteps + 1):
         windows.append(data[i: i + n_timesteps])
     return np.array(windows)
 
@@ -90,10 +90,10 @@ if __name__=="__main__":
     print("Angle size:", angle_data.shape)
 
     # Data normalization
-    angle_data = angle_data/180.0
+    angle_data = angle_data
     # x_train = emg_data
     x_train, x_test, y_train, y_test = train_test_split(
-        emg_data, angle_data, test_size=0.15, random_state=42
+        emg_data, angle_data, test_size=0.10, random_state=40
     )
     
     # print(x_train.shape, x_test.shape)
@@ -111,7 +111,7 @@ if __name__=="__main__":
     if not path.exists('dataset_processed.npy'):
         x_train, y_train = create_time_serie(x_train, y_train, n_timesteps)
         x_test, y_test = create_time_serie(x_test, y_test, n_timesteps)
-        
+
         with open('dataset_processed.npy', 'wb') as f:
             np.save(f, x_train)
             np.save(f, y_train)
@@ -126,7 +126,7 @@ if __name__=="__main__":
             y_test = np.load(f, allow_pickle=True)
 
     batch = 30
-    batch_size = 500
+    batch_size = 300
 
     model = ModelConv(N_ANGLES, N_ELECTRODES, n_timesteps)
     print("x train shape :", x_train.shape, "y train shape :", y_train.shape)
