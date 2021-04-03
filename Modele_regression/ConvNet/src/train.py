@@ -8,45 +8,21 @@ from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-#Label one category
-def label_category(category, windows_length):
-    indexLabel = categories.index(category)
-    Y = np.full((windows_length, 1), indexLabel)
-    return Y
+def create_angles_window_average(angle_data, average_window, n_timesteps):
+    windows = []
+    for i in range(angle_data.shape[0] - n_timesteps + 1):
+        windows.append(np.sum(angle_data[n_timesteps+i-1:i+average_window + n_timesteps-1], axis=0)/average_window)
+    return np.array(windows)
 
-# #Create 3d array for lstmae training
-# def create_time_series(filepath, n_timesteps):
-#     time_series = []
-#     Y = []
-#     first_y = True 
-#     first_windows = True
-#     for category in categories:
-#         print(category)
-#         data = np.load(filepath + "/" + category + ".npy")
-#         data = normalize(data, axis=1)
-#         windows = create_sliding_windows(data, n_timesteps)
-#         y_category = label_category(category, len(windows))
-#         if first_y:                                        
-#             Y = np.array(y_category)
-#             first_y = False
-#         else:
-#             Y = np.vstack((Y,y_category))
-
-#         if first_windows:                                   
-#             time_series = windows
-#             first_windows = False
-#         else:
-#             time_series = np.vstack((time_series, windows))
-
-#     return time_series, Y
-
-def create_angles(angle_data, n_timesteps):
-    pass
-
-def create_time_serie(emg_data, angle_data, n_timesteps):
+def create_time_serie(emg_data, angle_data, n_timesteps, average_window):
     for i in range(emg_data.shape[0]):
         windows = create_sliding_windows(emg_data[i], n_timesteps)
         angles = angle_data[i][n_timesteps-1:]
+        # angles = create_angles_window_average(angle_data[i], average_window, n_timesteps)
+        # angles = np.delete(angles, [(i+5)%N_ANGLES for i in range(N_ANGLES_TO_DELETE)], axis=1)
+        # print(angle)
+        # print(angle_data[0:5])
+        
         # print("EMG :", emg_data[i].shape)
         # print("Windows :", windows.shape)
         # print("Angles :", angles.shape)
@@ -73,6 +49,7 @@ def create_sliding_windows(data, n_timesteps):
 TOTAL_SEQUENCES = 572
 N_PHASES = 3
 N_ANGLES = 18
+N_ANGLES_TO_DELETE = 0
 N_ELECTRODES = 7
 
 if __name__=="__main__":
@@ -96,21 +73,11 @@ if __name__=="__main__":
         emg_data, angle_data, test_size=0.10, random_state=40
     )
     
-    # print(x_train.shape, x_test.shape)
-    # print(y_train.shape, y_test.shape)
-    # print(x_train[0].shape)
-    # print(x_train[151].shape)
-    # x_train = create_sliding_windows(x_train[0], 30)
-    # x_test = create_sliding_windows(x_test, 30)
-    # y_train = create_sliding_windows(y_train[0], 30)
-    # y_test = create_sliding_windows(y_test[0], 30)
-    
-    # print(sx_train.shape)
-    
     n_timesteps = 30
+    average_window = 10
     if not path.exists('dataset_processed.npy'):
-        x_train, y_train = create_time_serie(x_train, y_train, n_timesteps)
-        x_test, y_test = create_time_serie(x_test, y_test, n_timesteps)
+        x_train, y_train = create_time_serie(x_train, y_train, n_timesteps, average_window)
+        x_test, y_test = create_time_serie(x_test, y_test, n_timesteps, average_window)
 
         with open('dataset_processed.npy', 'wb') as f:
             np.save(f, x_train)
@@ -125,18 +92,12 @@ if __name__=="__main__":
             x_test = np.load(f, allow_pickle=True)
             y_test = np.load(f, allow_pickle=True)
 
-    batch = 30
-    batch_size = 300
+    epochs = 11
+    batch_size = 500
 
-    model = ModelConv(N_ANGLES, N_ELECTRODES, n_timesteps)
+    model = ModelConv(N_ANGLES-N_ANGLES_TO_DELETE, N_ELECTRODES, n_timesteps)
     print("x train shape :", x_train.shape, "y train shape :", y_train.shape)
     print("x test shape :", x_test.shape, "y test shape :", y_test.shape)
-    model.train(x_train, y_train, x_test, y_test, batch, batch_size)
+    model.train(x_train, y_train, x_test, y_test, epochs, batch_size)
 
-
-    # l-sl + 1
-
-    # [1, 2, 3, 4]
-    # [[1,2],[2,3],[3,4]]
-    # [[1,2,3], [2,3,4]]
-
+    model.save("conv_angle_v1_sw.h5")
