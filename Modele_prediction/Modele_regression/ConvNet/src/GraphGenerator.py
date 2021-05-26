@@ -1,14 +1,16 @@
 import numpy as np
 from convnet import ModelConv
 from scipy.io import loadmat
+
 import matplotlib.pyplot as plt
 import os
 from os import path
 from tensorflow.keras.utils import to_categorical
 from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split
+import matplotlib as mpl
 import matplotlib.pyplot as plt
-
+mpl.use('Qt5Agg')
 
 def create_angles_window_average(angle_data, average_window, n_timesteps):
     windows = []
@@ -60,7 +62,7 @@ N_ELECTRODES = 7
 
 if __name__ == "__main__":
     if os.name == 'nt':  # Windows
-        filepath = r"C:\Users\atman\PycharmProjects\pythonProject\Classification\Acquisition\Data\Dataset_avec_angles_tester"
+        filepath = r"C:\..\..\Acquisition\Data\Dataset_avec_angles_tester"
     else:  # Linux/Mac
         filepath = r"../../Acquisition/Data/Dataset_avec_angles_tester"
 
@@ -104,7 +106,7 @@ if __name__ == "__main__":
     print("x train shape :", x_train.shape, "y train shape :", y_train.shape)
     print("x test shape :", x_test.shape, "y test shape :", y_test.shape)
 
-    path = r"C:\Users\atman\PycharmProjects\pythonProject\Classification\Modele_prediction\Modele_regression\ConvNet\src\conv_angle_v1_sw.h5"
+    path = r"C:\..\..\Classification\Modele_prediction\Modele_regression\ConvNet\src\conv_angle_v1_sw.h5"
 
     model.load(path)
 
@@ -120,9 +122,14 @@ if __name__ == "__main__":
         for i in range(len(y_test)):
             angles_hat.append(y_hat[i][j])
             angles_test.append(y_test[i][j])
-        plt.plot(angles_hat, color='r')
-        plt.plot(angles_test, color='g')
+        plt.plot(angles_hat, color='r', label="Angle predit")
+        plt.plot(angles_test, color='g', label= "Angle original")
+        plt.title("Prediction d'angle")
+        plt.ylabel("Angle en degrés")
+        plt.xlabel("Tenseur")
+        plt.legend()
         plt.show()
         angles_hat.clear()
         angles_test.clear()
+
 
