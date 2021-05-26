@@ -54,9 +54,9 @@ N_ELECTRODES = 7
 
 if __name__=="__main__":
     if os.name == 'nt': # Windows
-        filepath = "..\\..\\Acquisition\\Data\\Dataset_avec_angles_tester"
+        filepath = "..\\..\\..\\..\\Acquisition\\Data\\Dataset_avec_angles_tester"
     else: # Linux/Mac
-        filepath = "../../Acquisition/Data/Dataset_avec_angles_tester"
+        filepath = "../../../../Acquisition/Data/Dataset_avec_angles_tester"
 
     with open(filepath + '/dataset_emg_angles.npz', 'rb') as file:
         data = np.load(file, allow_pickle=True)
@@ -101,3 +101,32 @@ if __name__=="__main__":
     model.train(x_train, y_train, x_test, y_test, epochs, batch_size)
 
     model.save("conv_angle_v1_sw.h5")
+
+    print(model.predict(x_test).shape)
+    print(y_test.shape)
+
+    y_hat = model.predict(x_test)
+    taille = len(y_hat)
+
+    angles_hat = []
+    angles_test = []
+    angles_MSE = []
+
+    for j in range(18):
+        for i in range(10000):
+            angles_hat.append(y_hat[i][j])
+            angles_test.append(y_test[i][j])
+            angles_MSE.append((y_hat[i][j] - y_test[i][j])**2)
+        #print(np.shape(angles_hat))
+        #print(np.shape(angles_test))
+        fig, (ax1,ax2) = plt.subplots(2,1)
+        ax1.plot(angles_hat, 'r')
+        ax1.plot(angles_test, 'b')
+        ax2.plot(angles_MSE, 'g')
+        ax2.set_xlabel("Timestep")
+        ax2.set_ylabel("Squared error")
+        ax2.set_title("MSE = " + str(np.mean(angles_MSE)))
+        plt.show()
+        angles_hat = []
+        angles_test = []
+        angles_MSE = []
