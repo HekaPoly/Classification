@@ -1,16 +1,14 @@
-# The model is based off this tutorial : https://medium.com/tensorflow/a-transformer-chatbot-tutorial-with-tensorflow-2-0-88bf59e66fe2
-# More information is available here: https://colab.research.google.com/github/tensorflow/examples/blob/master/community/en/transformer_chatbot.ipynb#scrollTo=eDUX7Oa8Xudj
 import slidingWindow
 from sklearn.model_selection import train_test_split
 from model import Model
 import numpy as np
 from os import path
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     filepath = "..\..\..\Acquisition\Data\Dataset_avec_angles_tester"
     saved_model_path = "model"
 
-    # Format the data
     with open(filepath + '/dataset_emg_angles.npz', 'rb') as file:
         data = np.load(file, allow_pickle=True)
         emg_data = data["emg_data"]
@@ -19,11 +17,9 @@ if __name__ == '__main__':
     print("EMG dataset size:", emg_data.shape)
     print("Angle size:", angle_data.shape)
 
-
-    # x_train = emg_data
     x_train, x_test, y_train, y_test = train_test_split(
-        emg_data, angle_data, test_size=0.10, random_state=40
-    )
+            emg_data, angle_data, test_size=0.10, random_state=40
+        )
 
     n_timesteps = 30
     average_window = 10
@@ -56,9 +52,29 @@ if __name__ == '__main__':
     batch_size = 500
     n_angle = 18
 
-    model = Model(time_steps, n_layers, units, d_model, n_heads, dropout, n_angle)
+    transformer = Model(time_steps, n_layers, units, d_model, n_heads, dropout, n_angle)
+    transformer.load(saved_model_path)
 
-    model.train_model(x_train, y_train, x_test, y_test, epochs, batch_size)
-    model.save(saved_model_path)
+    y_hat = transformer.predict(x_test)
 
+    angles_hat = []
+    angles_test = []
+    angles_MSE = []
 
+    for j in range(18):
+        for i in range(10000):
+            angles_hat.append(y_hat[i][j])
+            angles_test.append(y_test[i][j])
+            angles_MSE.append((y_hat[i][j] - y_test[i][j]) ** 2)
+
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1.plot(angles_hat, 'r')
+        ax1.plot(angles_test, 'b')
+        ax2.plot(angles_MSE, 'g')
+        ax2.set_xlabel("Timestep")
+        ax2.set_ylabel("Squared error")
+        ax2.set_title("MSE = " + str(np.mean(angles_MSE)))
+        plt.show()
+        angles_hat = []
+        angles_test = []
+        angles_MSE = []
