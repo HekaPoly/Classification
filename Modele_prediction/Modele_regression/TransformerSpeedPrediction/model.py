@@ -14,7 +14,7 @@ class Model:
         outputs = tf.reshape(enc_outputs, (-1, time_steps * d_model))
 
         # We predict our class
-        outputs = tf.keras.layers.Dense(units=output_size, activation='relu')(outputs)
+        outputs = tf.keras.layers.Dense(units=output_size, activation='linear')(outputs)
 
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='AnglePredictor')
         self.model.compile(loss='mse', optimizer='adam', metrics=['mae'])
