@@ -62,19 +62,15 @@ if __name__ == '__main__':
     angles_MSE = []
 
     for j in range(18):
-        for i in range(10000):
+        for i in range(len(y_test)):
             angles_hat.append(y_hat[i][j])
             angles_test.append(y_test[i][j])
-            angles_MSE.append((y_hat[i][j] - y_test[i][j]) ** 2)
-
-        fig, (ax1, ax2) = plt.subplots(2, 1)
-        ax1.plot(angles_hat, 'r')
-        ax1.plot(angles_test, 'b')
-        ax2.plot(angles_MSE, 'g')
-        ax2.set_xlabel("Timestep")
-        ax2.set_ylabel("Squared error")
-        ax2.set_title("MSE = " + str(np.mean(angles_MSE)))
+        plt.plot(angles_hat, color='r', label="Angle predit")
+        plt.plot(angles_test, color='g', label="Angle original")
+        plt.title("Prediction d'angle")
+        plt.ylabel("Angle en degrés")
+        plt.xlabel("Tenseur")
+        plt.legend()
         plt.show()
-        angles_hat = []
-        angles_test = []
-        angles_MSE = []
+        angles_hat.clear()
+        angles_test.clear()
