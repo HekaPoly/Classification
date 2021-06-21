@@ -39,7 +39,10 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         return tf.transpose(inputs, perm=[0, 2, 1, 3])
 
     def call(self, inputs):
-        query, key, value, mask = inputs['query'], inputs['key'], inputs['value'], inputs['mask']
+        if 'mask' in inputs:
+            query, key, value, mask = inputs['query'], inputs['key'], inputs['value'], inputs['mask']
+        else:
+            query, key, value, mask = inputs['query'], inputs['key'], inputs['value'], None
         batch_size = tf.shape(query)[0]
 
         # linear layers
