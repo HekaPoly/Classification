@@ -21,6 +21,7 @@ class ModelConv(object):
         model = Sequential(name="conv_angle_v1")
         #model.add(tf.keras.layers.GaussianNoise(0.1))
 
+
         model.add(Conv1D(64, 6, activation='linear', input_shape=(n_timesteps, n_electrodes)))
         model.add(MaxPooling1D())
         model.add(BatchNormalization())
