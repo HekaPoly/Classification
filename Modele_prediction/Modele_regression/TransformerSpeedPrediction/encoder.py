@@ -1,7 +1,10 @@
+import numpy as np
 import tensorflow as tf
+from tensorflow.keras.layers import *
 
 from multiHeadAttention import MultiHeadAttention
 from positionalEncoding import PositionalEncoding
+from Time2Vector import T2V
 
 
 class Encoder:
@@ -19,7 +22,7 @@ class Encoder:
         attention = tf.keras.layers.Dropout(rate=dropout)(attention)
         attention = tf.keras.layers.LayerNormalization(epsilon=1e-6)(inputs + attention)
 
-        outputs = tf.keras.layers.Dense(units=units, activation='relu')(attention)
+        outputs = tf.keras.layers.Dense(units=units, activation='linear')(attention)
         outputs = tf.keras.layers.Dense(units=d_model)(outputs)
         outputs = tf.keras.layers.Dropout(rate=dropout)(outputs)
         outputs = tf.keras.layers.LayerNormalization(epsilon=1e-6)(attention + outputs)
@@ -37,6 +40,8 @@ class Encoder:
 
         projection *= tf.math.sqrt(tf.cast(d_model, tf.float32))
         projection = PositionalEncoding(time_steps, d_model)(projection)
+        #print(projection.shape)
+        #projection = T2V(projection.shape)(projection)
 
         outputs = tf.keras.layers.Dropout(rate=dropout)(projection)
 

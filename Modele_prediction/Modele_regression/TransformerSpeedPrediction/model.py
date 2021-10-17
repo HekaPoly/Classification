@@ -13,11 +13,10 @@ class Model:
         # We reshape for feeding our FC in the next step
         outputs = tf.reshape(enc_outputs, (-1, time_steps * d_model))
 
-        # We predict our class
         outputs = tf.keras.layers.Dense(units=output_size, activation='linear')(outputs)
 
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs, name='AnglePredictor')
-        self.model.compile(loss='mse', optimizer='adam', metrics=['mae'])
+        self.model.compile(loss='mae', optimizer='adam', metrics=['mae'])
 
     def train_model(self, x_train, y_train, x_test, y_test, n_epoch, batch_size):
         self.model.fit(x_train, y_train, epochs=n_epoch, validation_data=(x_test, y_test), batch_size=batch_size, shuffle=True)

@@ -25,8 +25,8 @@ if __name__ == '__main__':
         emg_data, angle_data, test_size=0.10, random_state=40
     )
 
-    n_timesteps = 30
-    average_window = 10
+    n_timesteps = 40
+    average_window = 15
 
     if not path.exists('dataset_processed.npy'):
         x_train, y_train = slidingWindow.create_time_serie(x_train, y_train, n_timesteps, average_window)
@@ -46,14 +46,14 @@ if __name__ == '__main__':
             y_test = np.load(f, allow_pickle=True)
 
     # parameter for the model
-    n_layers = 2
+    n_layers = 3
     d_model = x_train.shape[2]
     n_heads = 7
-    units = 1024
-    dropout = 0.1
+    units = 2048
+    dropout = 0.05
     time_steps = x_train.shape[1]
     epochs = 10
-    batch_size = 500
+    batch_size = 512
     n_angle = 18
 
     model = Model(time_steps, n_layers, units, d_model, n_heads, dropout, n_angle)

@@ -25,7 +25,6 @@ class ModelConv(object):
         model.add(MaxPooling1D())
         model.add(BatchNormalization())
 
-
         model.add(Conv1D(64, 4, activation='linear'))
         model.add(MaxPooling1D())
         model.add(BatchNormalization())

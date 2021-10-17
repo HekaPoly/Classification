@@ -19,7 +19,7 @@ class PositionalEncoding(tf.keras.layers.Layer):
         # apply sin to even index in the array
         sines = tf.math.sin(angle_rads[:, 0::2])
         # apply cos to odd index in the array
-        cosines = tf.math.cos(angle_rads[:, 1::2])
+        cosines = tf.math.sin(angle_rads[:, 1::2])
 
         pos_encoding = tf.concat([sines, cosines], axis=-1)
         pos_encoding = pos_encoding[tf.newaxis, ...]
