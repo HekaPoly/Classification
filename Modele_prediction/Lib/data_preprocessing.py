@@ -1,26 +1,21 @@
 import numpy as np
 import scipy.signal as signal
-from scipy.fft import *
 import matplotlib.pyplot as plt
 
 import data_loader
 
 
 def get_frequencie(emg_data):
-    result = []
-    for i in range(emg_data.shape[0]):
-        print(emg_data[i])
-        result.append(fft(emg_data[i]))
-
+    result = np.fft.fft(emg_data, axis=0)
     print(result)
-    fft_result = np.abs(np.array(result))
-    plt.plot(np.swapaxes(fft_result,0,1)[0])
+    plt.plot(result)
     plt.show()
-
-def low_pass_filter(data):
-    result = signal.butter(2, )
-
     return result
+
+def apply_butter_filter(emg_data, freq):
+    butter_filter = signal.butter(2, freq, analog=True, output='sos')
+    #result = np.fft.ifft(butter_filter * fft_freq[:,1])
+    return signal.sosfilt(butter_filter, emg_data)
 
 
 #folderpath = r"..\..\Acquisition\Data\Dataset_avec_angles_tester"
@@ -29,6 +24,7 @@ def low_pass_filter(data):
 
 data = np.load(r"C:\Users\leona\Documents\Metis\Classification\Acquisition\Data\7_electrodes_Philippe\regroupement_des donnes_par_categorie\test_data_with_freestyle\shoulder_extension_3s_2000Hz.npy")
 print(data.shape)
-get_frequencie(data)
-plt.plot(data)
+result = apply_butter_filter(data, 10000)
+get_frequencie(result)
+plt.plot(result)
 plt.show()
