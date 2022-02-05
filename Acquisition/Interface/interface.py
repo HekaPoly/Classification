@@ -18,7 +18,7 @@ kMesurePerSecond = 4000 # Hertz (For each electrodes)
 instant = 0
 StopSerial = False
 
-comPort = "COM4"
+comPort = "COM5"
 
 def process_serial_buffer(q, name, movement_class, acq_number, n_electrodes, acq_time, n_mesures, file_path):
 
