@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-data = np.load("WristFlex.npy")
+data = np.load("Flexioncoude_3s_4000Hz_1.npy")
+print(data.size())
 print(data[0])
 plt.subplot(241)
 plt.plot(data[0])
