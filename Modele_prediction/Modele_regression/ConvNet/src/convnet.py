@@ -3,8 +3,8 @@ import tensorflow as tf
 import keras
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Conv1D, Flatten, BatchNormalization
-from keras.layers import MaxPooling1D
+from keras.layers import Dense, Dropout, Conv1D, Flatten, BatchNormalization, LayerNormalization
+from keras.layers import MaxPooling1D, AveragePooling1D
 from sklearn.metrics import classification_report, confusion_matrix
 
 ########################################
@@ -21,6 +21,7 @@ class ModelConv(object):
         model = Sequential(name="conv_angle_v1")
         #model.add(tf.keras.layers.GaussianNoise(0.1))
 
+        model.add(BatchNormalization())
         model.add(Conv1D(64, 6, activation='linear', input_shape=(n_timesteps, n_electrodes)))
         model.add(MaxPooling1D())
         model.add(BatchNormalization())

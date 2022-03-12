@@ -2,6 +2,8 @@ from convnet import ModelConv
 import os
 from os import path
 from sklearn.model_selection import train_test_split
+import pywt
+import matplotlib.pyplot as plt
 
 from Lib.data_preprocessing import *
 from Lib.sliding_window import *
@@ -36,8 +38,9 @@ if __name__=="__main__":
     if not path.exists('dataset_processed.npy'):
         x_train, y_train = create_time_serie(x_train, y_train, n_timesteps)
         x_test, y_test = create_time_serie(x_test, y_test, n_timesteps)
-
-        test = normalize(x_train[0])
+        x_train = pywt.dwt(x_train,'haar')[0]
+        x_test = pywt.dwt(x_test,'haar')[0]
+        #test = normalize(x_train[0])
 
         with open('dataset_processed.npy', 'wb') as f:
             np.save(f, x_train)
