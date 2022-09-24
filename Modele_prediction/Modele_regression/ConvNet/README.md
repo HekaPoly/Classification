@@ -2,9 +2,7 @@
 
 [comment]: <> (TODO: faire quelque chose de plus cute)
 
-We propose a convnet deeplearning network using electromencephatographic(EEG) data as input to predict the angle of different motors. These motors will be the main driving unit for an exosquelletton to help people attain with dysmorphie musculaire.  
-
-
+We propose a convnet deeplearning network using Electromyography(EMG) data as input to predict the angle of different motors. These motors will be the main driving unit for an exoskeleton to help people suffering from muscular dystrophy.  
 
 ## Datasets
 ### Open dataset
