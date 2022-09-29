@@ -1,10 +1,9 @@
 import numpy as np
 import tensorflow as tf
-import keras
+import tensorflow.keras as keras
 
-from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Conv1D, Flatten, BatchNormalization, LayerNormalization
-from keras.layers import MaxPooling1D, AveragePooling1D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Dense, Dropout, Conv1D, Flatten, BatchNormalization, LayerNormalization, MaxPooling1D, AveragePooling1D
 from sklearn.metrics import classification_report, confusion_matrix
 
 ########################################
